@@ -11,6 +11,7 @@ import { logger } from './logger';
 import { getDb } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import { AssetType } from '../types';
+import { HAWL_DAYS, hawlCompletionDate } from '../core/calculations/hawl';
 
 // Helper to get random item from array
 const random = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
@@ -245,12 +246,9 @@ export class DataSeeder {
         if (!db) throw new Error('DB not initialized');
 
         const userId = getSeedUserId();
-        const TOTAL_DAYS = 354; // lunar year
-
         const start = new Date();
         start.setDate(start.getDate() - daysElapsed);
-        const completion = new Date(start);
-        completion.setDate(completion.getDate() + TOTAL_DAYS);
+        const completion = hawlCompletionDate(start);
 
         const totalWealth = randomFloat(60000, 140000);
         const zakatableWealth = totalWealth * 0.92;
@@ -283,7 +281,7 @@ export class DataSeeder {
             console.error('❌ Active hawl seed failed:', JSON.stringify(result.error, null, 2));
             throw new Error('Failed to insert active hawl record.');
         }
-        logger.info(`✅ Active hawl created: day ${daysElapsed} of ${TOTAL_DAYS}`);
+        logger.info(`✅ Active hawl created: day ${daysElapsed} of ${HAWL_DAYS}`);
     }
 
     /**

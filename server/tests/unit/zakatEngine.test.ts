@@ -19,6 +19,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { ZakatEngine } from '../../src/services/zakatEngine';
+import { CalendarService } from '../../src/services/calendarService';
 import type { Asset } from '../../src/types';
 
 /**
@@ -318,5 +319,225 @@ describe('all three methodologies produce a usable answer', () => {
         request({ method: 'not-a-methodology', assets: [asset({ value: 10_000, currency: 'USD' })] })
       )
     ).rejects.toThrow(/unknown methodology/i);
+  });
+});
+
+/**
+ * The route names the school in `methodology`; the engine must not drop it.
+ *
+ * `POST /api/zakat/calculate` maps the requested school to an engine value and
+ * passes it as `methodology` (routes/zakat.ts:159-172). A request that asks for
+ * one school and silently calculates with another reports the wrong figure and
+ * stamps the wrong school on the saved record and on the response
+ * (routes/zakat.ts:258,309), which is a governance defect rather than a
+ * rounding one.
+ *
+ * The nisab fake below varies by school the way NisabService does (Hanafi =
+ * silver, Hanbali = gold, others = the lower of the two), so the fixture shows
+ * a difference in money, not only in a label.
+ */
+describe('the requested school is the one that runs', () => {
+  const GOLD = 3_000;
+  const SILVER = 5_000;
+
+  function schoolAwareNisab() {
+    const calculateNisab = vi.fn(async (methodology: string) => {
+      const basis =
+        methodology === 'hanafi' ? 'silver' : methodology === 'hanbali' ? 'gold' : 'dual_minimum';
+      const effectiveNisab =
+        basis === 'silver' ? SILVER : basis === 'gold' ? GOLD : Math.min(GOLD, SILVER);
+      return {
+        goldNisab: GOLD,
+        silverNisab: SILVER,
+        effectiveNisab,
+        nisabBasis: basis,
+        calculationMethod: methodology,
+      };
+    });
+    return { calculateNisab, getCurrentNisab: calculateNisab };
+  }
+
+  // 4,000 sits above the gold threshold (3,000) and below the silver one
+  // (5,000), so the two conventions disagree about whether zakat is due.
+  const betweenThresholds = () => [asset({ value: 4_000, currency: 'USD' })];
+
+  it('calculates with the school the route passes, and says so', async () => {
+    const nisab = schoolAwareNisab();
+    const e = new ZakatEngine(fakeCurrencyService(), fakeCalendarService(), nisab as never);
+
+    const res = await e.calculateZakat(
+      // Exactly what the route builds for a user who chose the Hanafi school.
+      request({ method: undefined, methodology: 'HANAFI', assets: betweenThresholds() })
+    );
+
+    expect(res.methodology.id).toBe('hanafi');
+    expect(nisab.calculateNisab.mock.calls[0][0]).toBe('hanafi');
+    // Hanafi's silver threshold is 5,000, above the 4,000 portfolio: no zakat due.
+    expect(res.result.nisab.effectiveNisab).toBe(SILVER);
+    expect(res.result.meetsNisab).toBe(false);
+    expect(res.result.totals.totalZakatDue).toBe(0);
+  });
+
+  it('a standard request keeps the dual-minimum threshold', async () => {
+    // Protection pin: the same fixture under the default school is above nisab,
+    // so the test above is discriminating the school rather than the portfolio.
+    const nisab = schoolAwareNisab();
+    const e = new ZakatEngine(fakeCurrencyService(), fakeCalendarService(), nisab as never);
+    const res = await e.calculateZakat(
+      request({ method: undefined, methodology: 'STANDARD', assets: betweenThresholds() })
+    );
+    expect(res.methodology.id).toBe('standard');
+    expect(res.result.nisab.effectiveNisab).toBe(GOLD);
+    expect(res.result.totals.totalZakatDue).toBeCloseTo(100, 6); // 4,000 x 2.5%
+  });
+
+  it('keeps the lowercase `method` field working for internal callers', async () => {
+    // Protection pin: `method` is part of the request type for internal callers.
+    const e = engine();
+    const res = await e.calculateZakat(
+      request({ method: 'hanafi', methodology: undefined, assets: [asset({ value: 10_000, currency: 'USD' })] })
+    );
+    expect(res.methodology.id).toBe('hanafi');
+  });
+
+  it('rejects an unknown school passed in the request field', async () => {
+    // The widened field must not become a silent fallback: a caller that names a
+    // school the registry does not carry gets an error, not the default one.
+    const e = engine();
+    await expect(
+      e.calculateZakat(
+        request({ method: undefined, methodology: 'not-a-methodology', assets: [asset({ value: 10_000, currency: 'USD' })] })
+      )
+    ).rejects.toThrow(/unknown methodology/i);
+  });
+
+  it('offers the other schools as alternatives, not the one that ran', async () => {
+    const e = new ZakatEngine(fakeCurrencyService(), fakeCalendarService(), schoolAwareNisab() as never);
+    const res = await e.calculateZakat(
+      request({ method: undefined, methodology: 'HANAFI', assets: betweenThresholds() })
+    );
+    const offered = res.alternatives.map((a) => a.methodId);
+    expect(offered).not.toContain('hanafi');
+    expect(offered).toContain('standard');
+  });
+});
+
+/**
+ * The calendar factor is stated, not silently applied.
+ *
+ * These tests pin the REPORTING, not the choice of factor. A lunar calculation
+ * scales the amount due by the lunar-year factor; whether a lunar year should carry
+ * a rate adjustment at all, and on what basis, is a question for a qualified scholar
+ * and this suite does not decide it.
+ *
+ * The reason the reporting matters: the factor used to be multiplied into the total
+ * and stated nowhere, so one payload contained three statements that disagreed —
+ * a 2.5% rule-set rate, a per-asset sum of 250, and a total of 242.6 — with no field
+ * explaining the gap. A reader reconciling those figures could not tell an adjustment
+ * from an arithmetic bug.
+ */
+describe('the lunar-year factor is stated, not silently applied', () => {
+  // The real calendar service, so the factor under test is the production one
+  // rather than a value this file chose to inject.
+  const lunarEngine = () =>
+    new ZakatEngine(
+      fakeCurrencyService(),
+      new CalendarService() as never,
+      fakeNisabService(GOLD_NISAB, SILVER_NISAB)
+    );
+
+  const LUNAR_FACTOR = 0.9704; // as stated in calendarService: 354.367 / 365.25
+  const NOMINAL_DUE = 250; // 10,000 x 2.5%
+  const ADJUSTED_DUE = NOMINAL_DUE * LUNAR_FACTOR; // 242.6
+
+  const oneLunarAsset = () =>
+    request({ calendarType: 'lunar', assets: [asset({ value: 10_000, currency: 'USD' })] });
+
+  it('the per-asset lines add up to the amount due', async () => {
+    const res = await lunarEngine().calculateZakat(oneLunarAsset());
+    const lines = res.result.assets as Array<{ zakatDue: number }>;
+    const lineSum = lines.reduce((sum, a) => sum + a.zakatDue, 0);
+
+    // The total moved by the factor, so the lines must move with it.
+    expect(res.result.totals.totalZakatDue).toBeCloseTo(ADJUSTED_DUE, 6);
+    expect(lineSum).toBeCloseTo(res.result.totals.totalZakatDue, 6);
+  });
+
+  it('states the factor, the rate it produced, and the amount before it', async () => {
+    const res = await lunarEngine().calculateZakat(oneLunarAsset());
+    const adjustment = res.result.calendarAdjustment;
+
+    expect(adjustment).toMatchObject({
+      calendarType: 'lunar',
+      factor: LUNAR_FACTOR,
+      nominalRatePercent: 2.5,
+      zakatDueBeforeAdjustment: NOMINAL_DUE,
+    });
+    // 2.5% x 0.9704 — the rate actually applied, which no surface used to state.
+    expect(adjustment.effectiveRatePercent).toBeCloseTo(2.426, 6);
+    expect(typeof adjustment.note).toBe('string');
+    expect(adjustment.note).toContain('0.9704');
+  });
+
+  it('the breakdown states the same adjustment as the result', async () => {
+    const res = await lunarEngine().calculateZakat(oneLunarAsset());
+    const final = res.breakdown.finalCalculation;
+
+    // Pinned by value first: a `toEqual` against the result alone would pass on a
+    // response that carries no adjustment at all, since it compares two undefineds.
+    expect(final.calendarAdjustment).toMatchObject({
+      calendarType: 'lunar',
+      factor: LUNAR_FACTOR,
+      zakatDueBeforeAdjustment: NOMINAL_DUE,
+    });
+    expect(final.calendarAdjustment).toEqual(res.result.calendarAdjustment);
+    // The breakdown's own two figures disagree without it: `zakatDue` is adjusted,
+    // every `assetCalculations[].zakatDue` is not.
+    const lineSum = (res.breakdown.assetCalculations as Array<{ zakatDue: number }>).reduce(
+      (sum, a) => sum + a.zakatDue,
+      0
+    );
+    expect(lineSum).toBeCloseTo(final.zakatDue, 6);
+  });
+
+  it('a solar calculation states that no adjustment was applied', async () => {
+    const res = await lunarEngine().calculateZakat(
+      request({ calendarType: 'solar', assets: [asset({ value: 10_000, currency: 'USD' })] })
+    );
+
+    expect(res.result.totals.totalZakatDue).toBeCloseTo(NOMINAL_DUE, 6);
+    expect(res.result.calendarAdjustment).toMatchObject({
+      calendarType: 'solar',
+      factor: 1,
+      effectiveRatePercent: 2.5,
+      zakatDueBeforeAdjustment: NOMINAL_DUE,
+    });
+  });
+
+  it('a calculation below nisab states the factor but charges nothing', async () => {
+    // 3,000 is below the 3,200 silver nisab, so the gate — not the calendar — is
+    // what zeroes the amount. The object still states the factor it ran with, and
+    // `zakatDueBeforeAdjustment` follows the reported amount rather than implying a
+    // charge the nisab test suppressed.
+    const res = await lunarEngine().calculateZakat(
+      request({ calendarType: 'lunar', assets: [asset({ value: 3_000, currency: 'USD' })] })
+    );
+
+    expect(res.result.meetsNisab).toBe(false);
+    expect(res.result.totals.totalZakatDue).toBe(0);
+    expect(res.result.calendarAdjustment).toMatchObject({
+      factor: LUNAR_FACTOR,
+      zakatDueBeforeAdjustment: 0,
+    });
+  });
+
+  it('the stated assumptions give the applied rate and route the question', async () => {
+    const res = await lunarEngine().calculateZakat(oneLunarAsset());
+    const assumptions = res.assumptions.join('\n');
+
+    // The rule-set rate alone ("2.5%") is not what the amount reflects here.
+    expect(assumptions).toContain('0.9704');
+    expect(assumptions).toContain('2.426');
+    expect(assumptions).toMatch(/qualified scholar/i);
   });
 });

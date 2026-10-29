@@ -25,6 +25,7 @@ import { Decimal } from 'decimal.js';
 
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
 import { getNisabStandard } from '../../core/calculations/nisab';
+import { HAWL_DAYS } from '../../core/calculations/hawl';
 
 interface ActiveRecordWidgetProps {
   record: NisabYearRecord | null;
@@ -91,7 +92,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
   const startDateStr = record.hawlStartDate || record.startDate;
 
   // Calculate days elapsed and remaining from dates
-  const totalDays = 354; // Lunar year
+  const totalDays = HAWL_DAYS;
   let daysElapsed = record.daysElapsed || 0;
   let daysRemaining = record.daysRemaining || totalDays;
 

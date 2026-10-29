@@ -122,7 +122,7 @@ We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for det
 ### Known limitations, stated plainly
 
 - **Tablet widths (768–1024px) are not covered by the automated layout checks**, which measure phone and desktop only.
-- **One fiqh question is open:** whether the default niṣāb convention should be the gold or the silver basis. Both are available and the default preserves existing behaviour, so nothing changes for existing users. It is with qualified teachers rather than being settled here.
+- **One fiqh question is open:** whether the default niṣāb convention should be the gold or the silver basis. Both are available and the default preserves existing behaviour, so nothing changes for existing users. It is left to a qualified scholar rather than being settled here.
 - **The hosted instance is a convenience, not a trust requirement.** Self-hosting is the only way to be certain of your own data, and that is the point of the licence.
 
 ## 📄 License

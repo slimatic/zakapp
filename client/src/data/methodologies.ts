@@ -76,7 +76,7 @@ export const methodologies: Record<string, Methodology> = {
     nisabCalculation: {
       description: 'Based on the gold standard',
       method: 'Gold-based nisab threshold',
-      threshold: '87.48 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
+      threshold: '87.48 grams of gold (the currency equivalent varies with the gold price and is shown live in your selected currency)'
     },
 
     assetTreatment: {
@@ -103,9 +103,9 @@ export const methodologies: Record<string, Methodology> = {
     ],
 
     practicalExample: {
-      scenario: 'Ahmad has $50,000 in savings, $30,000 in gold, $20,000 in stocks, and $10,000 in cryptocurrency. Total wealth: $110,000.',
-      calculation: 'Total Zakatable Wealth: $110,000\nNisab (85g gold): $5,500\nWealth exceeds nisab ✓\nZakat Rate: 2.5%\nZakat Due: $110,000 × 0.025',
-      result: '$2,750 Zakat due'
+      scenario: 'Ahmad has 50,000 units of currency in savings, 30,000 in gold, 20,000 in stocks, and 10,000 in cryptocurrency — 110,000 in total.',
+      calculation: 'Total Zakatable Wealth: 110,000\nNisab (85g gold): 5,500\nWealth exceeds nisab ✓\nZakat Rate: 2.5%\nZakat Due: 110,000 × 0.025',
+      result: '2,750 Zakat due'
     },
 
     sources: [
@@ -142,7 +142,7 @@ export const methodologies: Record<string, Methodology> = {
     nisabCalculation: {
       description: 'Based on the silver standard OR gold standard, whichever is lower',
       method: 'Silver-based nisab threshold (typically lower)',
-      threshold: '612.36 grams of silver (approximately $350-500 USD) OR 87.48 grams of gold, whichever is LOWER'
+      threshold: '612.36 grams of silver OR 87.48 grams of gold, whichever is LOWER'
     },
 
     assetTreatment: {
@@ -168,9 +168,9 @@ export const methodologies: Record<string, Methodology> = {
     ],
 
     practicalExample: {
-      scenario: 'Fatima has $15,000 in savings, $8,000 in jewelry, and $7,000 in business inventory. Total wealth: $30,000.',
-      calculation: 'Total Zakatable Wealth: $30,000\nNisab (Silver): $400\nNisab (Gold): $5,500\nUse lower threshold (Silver): $400\nWealth exceeds nisab ✓\nZakat Rate: 2.5%\nZakat Due: $30,000 × 0.025',
-      result: '$750 Zakat due (using silver nisab)'
+      scenario: 'Fatima has 15,000 units of currency in savings, 8,000 in jewelry, and 7,000 in business inventory — 30,000 in total.',
+      calculation: 'Total Zakatable Wealth: 30,000\nNisab (Silver): 400\nNisab (Gold): 5,500\nUse lower threshold (Silver): 400\nWealth exceeds nisab ✓\nZakat Rate: 2.5%\nZakat Due: 30,000 × 0.025',
+      result: '750 Zakat due (using silver nisab)'
     },
 
     sources: [
@@ -232,9 +232,9 @@ export const methodologies: Record<string, Methodology> = {
     ],
 
     practicalExample: {
-      scenario: 'Yusuf has a business with $80,000 inventory, $40,000 in cash, and $15,000 in agricultural income. He calculates separately by category.',
-      calculation: 'Business Inventory: $80,000 × 2.5% = $2,000\nCash: $40,000 × 2.5% = $1,000\nAgriculture (irrigated): $15,000 × 5% = $750\nTotal Zakat',
-      result: '$3,750 Zakat due (category-specific calculation)'
+      scenario: 'Yusuf has a business with 80,000 units of currency in inventory, 40,000 in cash, and 15,000 in agricultural income. He calculates separately by category.',
+      calculation: 'Business Inventory: 80,000 × 2.5% = 2,000\nCash: 40,000 × 2.5% = 1,000\nAgriculture (irrigated): 15,000 × 5% = 750\nTotal Zakat',
+      result: '3,750 Zakat due (category-specific calculation)'
     },
 
     sources: [
@@ -299,7 +299,7 @@ export const methodologies: Record<string, Methodology> = {
 
     practicalExample: {
       scenario: 'A user following a specific scholar who recommends 3% Zakat on investments to be extra cautious, and uses a custom nisab based on local currency.',
-      calculation: 'Based on scholar guidance:\nInvestments: $100,000 × 3% = $3,000\nOther assets: Custom rules apply\nCustom nisab threshold: $4,000',
+      calculation: 'Based on scholar guidance:\nInvestments: 100,000 × 3% = 3,000\nOther assets: Custom rules apply\nCustom nisab threshold: 4,000',
       result: 'Zakat calculated according to specific scholarly guidance'
     },
 
@@ -338,7 +338,7 @@ export const methodologies: Record<string, Methodology> = {
     nisabCalculation: {
       description: 'Based on the gold standard',
       method: 'Gold-based nisab threshold (85g)',
-      threshold: '87.48 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
+      threshold: '87.48 grams of gold (the currency equivalent varies with the gold price and is shown live in your selected currency)'
     },
 
     assetTreatment: {
@@ -364,9 +364,9 @@ export const methodologies: Record<string, Methodology> = {
     ],
 
     practicalExample: {
-      scenario: 'Yusuf has $20,000 cash, $10,000 in personal jewelry, and a plot of land bought for $50,000 that he holds purely for price appreciation.',
-      calculation: 'Cash: $20,000 zakatable\\nPersonal jewelry (modest use): exempt\\nLand held for appreciation: $50,000 zakatable (Maliki trade-goods view)\\nTotal zakatable: $70,000\\nNisab (85g gold): $5,500 — exceeded ✓\\nZakat Due: $70,000 × 0.025',
-      result: '$1,750 Zakat due'
+      scenario: 'Yusuf has 20,000 units of currency in cash, 10,000 in personal jewelry, and a plot of land bought for 50,000 that he holds purely for price appreciation.',
+      calculation: 'Cash: 20,000 zakatable\\nPersonal jewelry (modest use): exempt\\nLand held for appreciation: 50,000 zakatable (Maliki trade-goods view)\\nTotal zakatable: 70,000\\nNisab (85g gold): 5,500 — exceeded ✓\\nZakat Due: 70,000 × 0.025',
+      result: '1,750 Zakat due'
     },
 
     sources: [
@@ -405,7 +405,7 @@ export const methodologies: Record<string, Methodology> = {
     nisabCalculation: {
       description: 'Based on the gold standard',
       method: 'Gold-based nisab threshold (85g)',
-      threshold: '87.48 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
+      threshold: '87.48 grams of gold (the currency equivalent varies with the gold price and is shown live in your selected currency)'
     },
 
     assetTreatment: {
@@ -431,9 +431,9 @@ export const methodologies: Record<string, Methodology> = {
     ],
 
     practicalExample: {
-      scenario: 'Noura has $25,000 in savings, $12,000 in personal gold jewelry, and $15,000 in gold she holds as an investment.',
-      calculation: 'Cash: $25,000 zakatable\\nPersonal jewelry: exempt\\nInvestment gold: $15,000 zakatable\\nTotal zakatable: $40,000\\nNisab (85g gold): $5,500 — exceeded ✓\\nZakat Due: $40,000 × 0.025',
-      result: '$1,000 Zakat due'
+      scenario: 'Noura has 25,000 units of currency in savings, 12,000 in personal gold jewelry, and 15,000 in gold she holds as an investment.',
+      calculation: 'Cash: 25,000 zakatable\\nPersonal jewelry: exempt\\nInvestment gold: 15,000 zakatable\\nTotal zakatable: 40,000\\nNisab (85g gold): 5,500 — exceeded ✓\\nZakat Due: 40,000 × 0.025',
+      result: '1,000 Zakat due'
     },
 
     sources: [
@@ -485,11 +485,11 @@ export interface MethodologyComparison {
 export const methodologyComparison: MethodologyComparison[] = [
   {
     feature: 'Nisab Threshold',
-    standard: '87.48g gold (~$5,500)',
+    standard: '87.48g gold (currency value varies with the gold price)',
     hanafi: '612.36g silver OR 87.48g gold (lower value)',
-    shafii: '87.48g gold (~$5,500)',
-    maliki: '87.48g gold (~$5,500)',
-    hanbali: '87.48g gold (~$5,500)',
+    shafii: '87.48g gold (currency value varies with the gold price)',
+    maliki: '87.48g gold (currency value varies with the gold price)',
+    hanbali: '87.48g gold (currency value varies with the gold price)',
     custom: 'User-defined'
   },
   {

@@ -21,4 +21,5 @@
 //   cannot reach its own API.
 window.APP_CONFIG = {
   API_BASE_URL: '/api',
+  RECONCILE_ENABLED: 'false',
 };

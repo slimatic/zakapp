@@ -151,37 +151,3 @@ export function getPropertyGuidance(subCategory: string): string | null {
       return null;
   }
 }
-
-/**
- * Calculate zakatable amount for display
- * @param value Asset value
- * @param modifier Calculation modifier
- * @param exchangeRate Optional currency exchange rate
- * @returns Zakatable amount after modifier applied
- */
-export function calculateZakatableAmount(
-  value: number,
-  modifier: number = 1.0,
-  exchangeRate: number = 1.0
-): number {
-  if (value <= 0 || modifier === undefined) return 0;
-  return value * exchangeRate * modifier;
-}
-
-/**
- * Calculate Zakat owed for asset
- * @param value Asset value
- * @param modifier Calculation modifier
- * @param zakatRate Annual Zakat rate (default: 0.025 = 2.5%)
- * @param exchangeRate Optional currency exchange rate
- * @returns Zakat amount owed
- */
-export function calculateZakat(
-  value: number,
-  modifier: number = 1.0,
-  zakatRate: number = 0.025,
-  exchangeRate: number = 1.0
-): number {
-  const zakatableAmount = calculateZakatableAmount(value, modifier, exchangeRate);
-  return zakatableAmount * zakatRate;
-}

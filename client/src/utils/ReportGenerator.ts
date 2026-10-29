@@ -21,13 +21,80 @@ import { PDF_THEME, TABLE_STYLES, hex } from './pdfTheme';
 import autoTable from 'jspdf-autotable';
 import { NisabYearRecord } from '../types/nisabYearRecord';
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
-import { Asset } from '../types/index';
 import { formatCurrency as canonicalCurrency } from './formatters';
 // import { formatCurrency } from './formatters'; // Avoid circular dependency if simple
 
 // Simple local formatter to avoid complex imports if needed, or import standard one
 const formatCurrency = (amount: number, currency = 'USD') =>
   canonicalCurrency(amount, currency);
+
+export type StatementRows = {
+  summaryRows: [string, string][];
+  financialRows: [string, string][];
+};
+
+/**
+ * Every money row of the statement reads a figure the record's own engine
+ * stored. The statement is a printout of the record — recomputing totals from
+ * the raw asset and liability lists printed a second recipe beside the stored
+ * one: the raw list includes inactive balances the engine excludes, so its
+ * "Total Liabilities" and "Net Zakatable Wealth" rows could contradict the
+ * stored Zakatable Wealth and Zakat Due rows on the same page.
+ *
+ * A stored figure may be unreadable (a legacy record can carry a
+ * non-numeric string). A missing row is honest, a confident zero is not —
+ * the same rule the Nisab Threshold row has always followed.
+ */
+export function hawlStatementRows(record: NisabYearRecord, username: string, currency: string): StatementRows {
+  // Number('  ') is 0, so a blank must be caught on the trimmed text, before
+  // any conversion — a whitespace-only stored value is not a readable zero.
+  const readableMoney = (raw: unknown): number | undefined => {
+    const text = raw === null || raw === undefined ? '' : String(raw);
+    const value = text.trim() === '' ? NaN : Number(text);
+    return Number.isFinite(value) ? value : undefined;
+  };
+
+  const threshold = readableMoney(
+    record.nisabThresholdAtStart ?? record.nisabThreshold ?? record.initialNisabThreshold
+  );
+  const totalWealth = readableMoney(record.totalWealth);
+  const netZakatableWealth = readableMoney(record.zakatableWealth);
+  const zakatDue = readableMoney(record.zakatAmount);
+  // Some creation paths store a liabilities total on the record (the
+  // onboarding wizard and import/restore; the modal create path does not).
+  // When the record carries one it is the record's OWN stored figure — print
+  // it under the same omit-if-unreadable rule; it is never recomputed
+  // against the raw lists, and a record without one carries no row.
+  const recordedLiabilities = readableMoney(record.totalLiabilities);
+
+  const summaryRows: [string, string][] = [
+    ['Beneficiary', username],
+    ['Hawl Period',
+      `${new Date(record.hawlStartDate!).toLocaleDateString()} - ${record.hawlCompletionDate
+        ? new Date(record.hawlCompletionDate).toLocaleDateString()
+        : 'Ongoing'}`],
+    ['Status', record.status || 'DRAFT'],
+  ];
+  if (threshold !== undefined) {
+    summaryRows.push(['Nisab Threshold', formatCurrency(threshold, currency)]);
+  }
+
+  const financialRows: [string, string][] = [];
+  if (totalWealth !== undefined) {
+    financialRows.push(['Total Wealth', formatCurrency(totalWealth, currency)]);
+  }
+  if (netZakatableWealth !== undefined) {
+    financialRows.push(['Net Zakatable Wealth', formatCurrency(netZakatableWealth, currency)]);
+  }
+  if (recordedLiabilities !== undefined) {
+    financialRows.push(['Total Liabilities (recorded)', formatCurrency(recordedLiabilities, currency)]);
+  }
+  if (zakatDue !== undefined) {
+    financialRows.push(['Zakat Due (2.5%)', formatCurrency(zakatDue, currency)]);
+  }
+
+  return { summaryRows, financialRows };
+}
 
 export class ReportGenerator {
     private doc: jsPDF;
@@ -89,7 +156,7 @@ export class ReportGenerator {
         }
     }
 
-    public generateHawlStatement(record: NisabYearRecord, assets: Asset[], username: string = 'User', totalLiabilities: number = 0) {
+    public generateHawlStatement(record: NisabYearRecord, username: string = 'User') {
         const doc = this.doc;
 
         // Header
@@ -103,35 +170,12 @@ export class ReportGenerator {
         doc.text('Summary', this.MARGIN, yPos);
         yPos += 10;
 
-        const totalAssets = assets.reduce((sum, a) => sum + Number(a.value || 0), 0);
-        const netWorth = totalAssets - totalLiabilities;
-
-        // The recorded threshold may be encrypted (a non-numeric string), in which
-        // case it cannot be read here - see the same caveat in NisabComparisonWidget.
-        // Printing a hardcoded 0 in its place put "$0.00" on a FINALIZED statement
-        // showing a zakat amount due, which reads as a broken calculation. When the
-        // value is not readable the row is OMITTED: a missing row is honest, a
-        // confident zero is not.
-        const rawThreshold = record.nisabThresholdAtStart ?? (record as any).nisabThreshold ?? record.initialNisabThreshold;
-        const parsedThreshold = parseFloat(String(rawThreshold ?? ''));
-        const thresholdLine: [string, string][] = Number.isFinite(parsedThreshold)
-            ? [['Nisab Threshold', formatCurrency(parsedThreshold, this.currency)]]
-            : [];
-
-        const summaryData = [
-            ['Beneficiary', username],
-            ['Hawl Period', `${new Date(record.hawlStartDate!).toLocaleDateString()} - ${record.hawlCompletionDate ? new Date(record.hawlCompletionDate).toLocaleDateString() : 'Ongoing'}`],
-            ...thresholdLine,
-            ['Status', record.status || 'DRAFT'],
-            ['Total Assets', formatCurrency(totalAssets, this.currency)],
-            ['Total Liabilities', formatCurrency(totalLiabilities, this.currency)],
-            ['Net Worth', formatCurrency(netWorth, this.currency)]
-        ];
+        const { summaryRows, financialRows } = hawlStatementRows(record, username, this.currency);
 
         autoTable(doc, {
             startY: yPos,
             head: [],
-            body: summaryData,
+            body: summaryRows,
             theme: 'plain',
             styles: { fontSize: 10, cellPadding: 2 },
             columnStyles: { 0: { fontStyle: 'bold', cellWidth: 45 } },
@@ -152,20 +196,10 @@ export class ReportGenerator {
         doc.setFontSize(14);
         doc.text('Calculation Details', this.MARGIN, financialsY);
 
-        const netZakatableWealth = Math.max(0, totalAssets - totalLiabilities);
-        
-        const financialsData = [
-            ['Total Assets', formatCurrency(totalAssets, this.currency)],
-            ['Zakatable Assets', formatCurrency(Number(record.zakatableWealth || 0), this.currency)],
-            ['Total Liabilities', formatCurrency(totalLiabilities, this.currency)],
-            ['Net Zakatable Wealth', formatCurrency(netZakatableWealth, this.currency)],
-            ['Zakat Due (2.5%)', formatCurrency(Number(record.zakatAmount || 0), this.currency)]
-        ];
-
         autoTable(doc, {
             startY: financialsY + 5,
             head: [['Item', 'Amount']],
-            body: financialsData,
+            body: financialRows,
             ...TABLE_STYLES,
             theme: 'striped',
             columnStyles: { 0: { cellWidth: 90 }, 1: { halign: 'right' } },

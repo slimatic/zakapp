@@ -79,9 +79,12 @@ export const RetirementTreatmentSection: React.FC<RetirementTreatmentSectionProp
     let explanation = '';
 
     if (methodology === 'preserved_growth') {
-        // 0.5% rule
+        // 0.5% rule: 20% of the balance stays zakatable at the standard 2.5% rate —
+        // the engine's arithmetic (0.20 modifier x 2.5% = 0.5% of gross), so the
+        // preview shows the figures a saved asset produces in the calculator. The
+        // rate must stay the default 0.025; multiplying by 0.005 here understated
+        // the preview five-fold.
         zatakatableValue = gross.times(0.20); // 20% is equivalent to 0.5% vs 2.5%
-        zatakatRate = 0.005;
         explanation = 'Based on Dr. Salah Al-Sawy\'s opinion: Zakat is due on the liquid assets of the underlying companies (0.5% of total).';
     } else if (methodology === 'collectible_value') {
         // Net after penalty/tax * 2.5%

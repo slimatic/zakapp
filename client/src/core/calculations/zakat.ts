@@ -15,8 +15,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Asset, AssetType } from '../../types/index';
+import { Asset, AssetType, Liability } from '../../types/index';
 import { MethodologyName, getMethodology } from './methodology';
+import { activeAssets } from './activeAssets';
+import {
+    activeLiabilities,
+    canonicalLiabilityType,
+    deductibleLiabilityAmount
+} from './liabilityRules';
 import type { RetirementConfig } from '../../types/asset.types';
 
 import { Decimal } from 'decimal.js';
@@ -181,7 +187,8 @@ export function calculateZakat(
     assets: Asset[],
     liabilities: any[],
     nisabValues: { gold: number; silver: number }, // Pass both values to allow smart selection
-    methodologyName: ZakatMethodology = 'STANDARD'
+    methodologyName: ZakatMethodology = 'STANDARD',
+    referenceDate: Date = new Date()
 ): CalculationResult {
     const config = getMethodology(methodologyName);
 
@@ -193,7 +200,7 @@ export function calculateZakat(
     let totalAssets = new Decimal(0);
     let zakatableAssets = new Decimal(0);
 
-    for (const asset of assets) {
+    for (const asset of activeAssets(assets)) {
         const assetValue = new Decimal(asset.value || 0);
         totalAssets = totalAssets.plus(assetValue);
 
@@ -209,19 +216,21 @@ export function calculateZakat(
         assetBreakdown[asset.type].zakatable = new Decimal(assetBreakdown[asset.type].zakatable).plus(zakatableVal).toNumber();
     }
 
-    // 3. Liabilities
+    // 3. Liabilities — one shared rule for every calculator (./liabilityRules):
+    // a user-confirmed deductible amount moves verbatim, else a debt due within
+    // ~1 lunar year deducts, and a closed liability counts nowhere. Which debts
+    // each school would make deductible is an open question the engine never picks.
     let totalLiabilities = new Decimal(0);
     let deductibleLiabilities = new Decimal(0);
     const liabilityBreakdown: Record<string, { total: number; deductible: number }> = {};
 
-    for (const liability of liabilities) {
+    for (const liability of activeLiabilities((liabilities as Liability[]) || [])) {
         const amount = new Decimal(liability.amount || 0);
         totalLiabilities = totalLiabilities.plus(amount);
 
-        const type = liability.type?.toUpperCase() || 'OTHER';
-        const isDeductible = config.deductibleLiabilities.includes(type);
+        const type = canonicalLiabilityType(liability.type);
 
-        const deductibleVal = isDeductible ? amount : new Decimal(0);
+        const deductibleVal = new Decimal(deductibleLiabilityAmount(liability, referenceDate));
         deductibleLiabilities = deductibleLiabilities.plus(deductibleVal);
 
         if (!liabilityBreakdown[type]) {

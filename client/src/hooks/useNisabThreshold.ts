@@ -45,6 +45,13 @@ export interface NisabThresholdData {
   nisabStandard: string;
   goldPrice?: number;
   silverPrice?: number;
+  /**
+   * BOTH thresholds in the user's convention, for engines that take the pair
+   * (calculateZakat picks per methodology). Computed by the same multiplication
+   * as `nisabAmount` — one site owns the grams. Undefined when a per-gram price
+   * is unavailable: the engine must not run on a half-known pair.
+   */
+  nisabPair: { gold: number; silver: number } | undefined;
   metalType?: string;
   fetchedAt: Date;
   isStale: boolean;
@@ -81,6 +88,10 @@ function buildFallbackThreshold(
       nisabBasis === 'GOLD'
         ? gold * selected.goldGrams
         : silver * selected.silverGrams,
+    nisabPair: {
+      gold: gold * selected.goldGrams,
+      silver: silver * selected.silverGrams,
+    },
     currency,
     nisabBasis,
     nisabStandard: selected.id,
@@ -149,6 +160,14 @@ async function fetchNisabThreshold(
     ? silverPerGram * selected.silverGrams
     : (silverPrice?.nisabValue ?? 0);
   const nisabAmount = nisabBasis === 'GOLD' ? goldNisabValue : silverNisabValue;
+  // The pair for pair-consuming engines, undefined when a per-gram price is
+  // missing — the server's pre-multiplied nisabValue is this hook's OWN
+  // last-resort fallback for the basis figure, and it carries the server's
+  // convention, so it must not silently become the pair the engine runs on.
+  const nisabPair: { gold: number; silver: number } | undefined =
+    goldPerGram !== null && silverPerGram !== null
+      ? { gold: goldNisabValue, silver: silverNisabValue }
+      : undefined;
   const fetchedAt = new Date(data.data.lastUpdated || data.data.effectiveDate);
 
   const now = new Date();
@@ -157,6 +176,7 @@ async function fetchNisabThreshold(
 
   return {
     nisabAmount,
+    nisabPair,
     currency,
     nisabBasis,
     nisabStandard: selected.id,
@@ -173,6 +193,12 @@ async function fetchNisabThreshold(
 export interface UseNisabThresholdResult {
   // Data
   nisabAmount: number | undefined;
+  /**
+   * BOTH thresholds in the user's convention (see NisabThresholdData). Undefined
+   * when a per-gram price is unavailable — engines taking the pair must treat
+   * that as "cannot determine", not as zero.
+   */
+  nisabPair: { gold: number; silver: number } | undefined;
   currency: string;
   nisabBasis: 'GOLD' | 'SILVER';
   /** Which gram convention produced the threshold. */
@@ -258,6 +284,7 @@ export function useNisabThreshold(
 
     return {
       nisabAmount: source?.nisabAmount,
+      nisabPair: source?.nisabPair,
       currency: source?.currency || currency,
       nisabBasis: source?.nisabBasis || nisabBasis,
       nisabStandard: source?.nisabStandard || nisabStandard,

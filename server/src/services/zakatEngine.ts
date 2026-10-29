@@ -27,7 +27,8 @@ import {
   CalendarCalculation,
   CalculationBreakdown,
   AssetCalculation,
-  AlternativeCalculation
+  AlternativeCalculation,
+  CalendarRateAdjustment
 } from '@zakapp/shared';
 import { ZAKAT_METHODS } from '@zakapp/shared';
 import { CurrencyService } from './currencyService';
@@ -79,9 +80,9 @@ export class ZakatEngine {
    */
   async calculateZakat(request: ZakatCalculationRequest & { assets?: Asset[]; userId?: string }): Promise<ZakatCalculationResult> {
     try {
-    // Get methodology information (method may be optional in request types)
-    const methodId = (request.method as string) || 'standard';
-    const methodology = this.getMethodologyInfo(methodId);
+      // Get methodology information from the school the request names
+      const methodId = this.resolveMethodologyId(request);
+      const methodology = this.getMethodologyInfo(methodId);
       
       // Get current nisab values
       const nisabInfo = await this.calculateNisabThreshold(methodology, request.customNisab);
@@ -114,7 +115,7 @@ export class ZakatEngine {
         result: calculation,
         methodology,
         breakdown,
-        assumptions: this.generateAssumptions(methodology, nisabInfo),
+        assumptions: this.generateAssumptions(methodology, nisabInfo, calculation.calendarAdjustment),
         sources: this.getScholarlySources(methodology.id),
         alternatives
       };
@@ -199,6 +200,26 @@ export class ZakatEngine {
     } catch (error) {
       throw new Error(`Methodology comparison failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * The methodology id a request asks for.
+   *
+   * `POST /api/zakat/calculate` passes the user's school as `methodology`
+   * (upper-case, after its own mapping); internal callers use `method`. Reading
+   * only one of the two silently calculates with the default school while the
+   * response and the saved record still carry the requested one's name.
+   *
+   * Case is normalised because `ZAKAT_METHODS` keys its entries by lower-case id
+   * while the request type spells the union in upper case. An absent or blank
+   * field means the default school; any other unrecognised value still throws in
+   * `getMethodologyInfo` rather than quietly substituting one.
+   */
+  private resolveMethodologyId(request: ZakatCalculationRequest): string {
+    const requested = request.methodology ?? request.method;
+    return typeof requested === 'string' && requested.trim()
+      ? requested.trim().toLowerCase()
+      : 'standard';
   }
 
   private getMethodologyInfo(methodId: string): MethodologyInfo {
@@ -376,15 +397,24 @@ export class ZakatEngine {
     // Check nisab eligibility
     const meetsNisab = totalZakatableAssets >= nisabInfo.effectiveNisab;
 
-    // Apply calendar adjustments if needed
-    const adjustedZakatDue = calendarInfo 
-      ? this.applyCalendarAdjustment(totalZakatDue, calendarInfo)
-      : totalZakatDue;
+    // Calendar adjustment, applied to the total AND to every per-asset line so the
+    // reported figures add up, and stated on the result (see `calendarAdjustment`).
+    // The stated amount before the factor is what the rule-set's own rate produced.
+    const calendarAdjustment = this.calendarAdjustment(
+      methodology,
+      calendarInfo,
+      meetsNisab ? totalZakatDue : 0
+    );
+    const adjustedAssets = zakatAssets.map(asset => ({
+      ...asset,
+      zakatDue: asset.zakatDue * calendarAdjustment.factor
+    }));
 
     const totals = {
       totalAssets,
       totalZakatableAssets,
-      totalZakatDue: meetsNisab ? adjustedZakatDue : 0
+      totalZakatDue:
+        calendarAdjustment.zakatDueBeforeAdjustment * calendarAdjustment.factor
     };
 
     return {
@@ -398,12 +428,13 @@ export class ZakatEngine {
         nisabBasis: methodology.nisabBasis
       },
       nisab: nisabInfo,
-      assets: meetsNisab ? zakatAssets : zakatAssets.map(a => ({ ...a, zakatDue: 0 })),
+      assets: meetsNisab ? adjustedAssets : adjustedAssets.map(a => ({ ...a, zakatDue: 0 })),
       totals,
       meetsNisab,
       status: 'pending',
       createdAt: new Date().toISOString(),
       calendarInfo: calendarInfo || undefined,
+      calendarAdjustment,
       sources: this.getScholarlySources(methodology.id)
     };
   }
@@ -611,14 +642,46 @@ export class ZakatEngine {
   }
 
   /**
-   * Apply calendar adjustments for lunar calculations
+   * The calendar factor a calculation applied, with the rate it produced.
+   *
+   * A lunar calculation scales the amount due by the lunar-year factor; a solar one
+   * does not. The factor used to be multiplied into the total and stated nowhere, so a
+   * result could carry a rule-set rate of 2.5% beside an amount computed at 2.426% with
+   * nothing in the payload explaining the difference — indistinguishable, to a reader,
+   * from an arithmetic defect. Every result now carries this object.
+   *
+   * Whether a lunar year should carry a rate adjustment at all, and on what basis, is a
+   * question for a qualified scholar. This states the arithmetic that ran and does not
+   * decide that question.
    */
-  private applyCalendarAdjustment(zakatDue: number, calendarInfo: CalendarCalculation): number {
-    // Apply lunar year adjustment (354 days vs 365 days)
-    if (calendarInfo.calculationPeriod === 'lunar') {
-      return zakatDue * calendarInfo.adjustmentFactor;
-    }
-    return zakatDue;
+  private calendarAdjustment(
+    methodology: MethodologyInfo,
+    calendarInfo: CalendarCalculation | undefined,
+    zakatDueBeforeAdjustment: number
+  ): CalendarRateAdjustment {
+    const lunar = calendarInfo?.calculationPeriod === 'lunar';
+    const stated = calendarInfo?.adjustmentFactor;
+    const factor = lunar && Number.isFinite(stated) ? (stated as number) : 1;
+    const nominalRatePercent = methodology.zakatRate;
+    const effectiveRatePercent = nominalRatePercent * factor;
+
+    return {
+      calendarType: lunar ? 'lunar' : 'solar',
+      factor,
+      nominalRatePercent,
+      effectiveRatePercent,
+      zakatDueBeforeAdjustment,
+      note: lunar
+        ? `This calculation ran on the lunar (Hijri) calendar, where the server applies a ` +
+          `calendar factor of ${factor}. The rule-set's ${nominalRatePercent}% rate therefore ` +
+          `corresponds to ${effectiveRatePercent.toFixed(3)}% of the zakatable amount over ` +
+          `the period, and any amount due from this calculation carries that factor. The ` +
+          `factor is a stated constant, not a recomputation from day counts (the mean-year ` +
+          `ratio 354.367 / 365.25 is 0.97020). Whether a lunar year should carry a rate ` +
+          `adjustment, and on what basis, is a question for a qualified scholar.`
+        : `No calendar adjustment was applied to this calculation, so the rule-set's ` +
+          `${nominalRatePercent}% rate is the rate applied.`
+    };
   }
 
   /**
@@ -656,7 +719,11 @@ export class ZakatEngine {
         totalAssets: calculation.totals.totalAssets,
         totalDeductions: 0, // Would include debt deductions
         zakatableAmount: calculation.totals.totalZakatableAssets,
-        zakatDue: calculation.totals.totalZakatDue
+        zakatDue: calculation.totals.totalZakatDue,
+        // Carried here as well as on the result: a reader of the breakdown sees
+        // `zakatDue` beside per-asset lines that carry the same factor, and the
+        // rule-set's own rate beside the rate actually applied.
+        calendarAdjustment: calculation.calendarAdjustment
       },
       sources: this.getScholarlySources(methodology.id),
       methodology: {
@@ -693,7 +760,7 @@ export class ZakatEngine {
     primaryCalculation: ZakatCalculation
   ): Promise<AlternativeCalculation[]> {
     const alternatives: AlternativeCalculation[] = [];
-    const otherMethods = Object.values(ZAKAT_METHODS).filter(m => m.id !== request.method);
+    const otherMethods = Object.values(ZAKAT_METHODS).filter(m => m.id !== this.resolveMethodologyId(request));
 
     // Calculate up to 3 alternative methodologies
     for (const method of otherMethods.slice(0, 3)) {
@@ -765,12 +832,17 @@ export class ZakatEngine {
   /**
    * Generate calculation assumptions
    */
-  private generateAssumptions(methodology: MethodologyInfo, nisabInfo: NisabInfo): string[] {
+  private generateAssumptions(
+    methodology: MethodologyInfo,
+    nisabInfo: NisabInfo,
+    adjustment?: CalendarRateAdjustment
+  ): string[] {
     return [
       `Using ${methodology.name} methodology`,
       `Nisab calculated based on ${nisabInfo.nisabBasis}`,
       `Current nisab threshold: $${nisabInfo.effectiveNisab.toFixed(2)}`,
       `Standard zakat rate: ${methodology.zakatRate}%`,
+      ...(adjustment ? [adjustment.note] : []),
       `Currency conversion rates as of calculation date`,
       'All asset values as reported by user',
       'No extraordinary circumstances considered'

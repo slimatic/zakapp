@@ -20,7 +20,7 @@ import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
-import { useNisabRecordActions } from '../hooks/useNisabRecordActions';
+import { useNisabRecordActions, RefreshRecordTarget } from '../hooks/useNisabRecordActions';
 import { useAuth } from '../contexts/AuthContext';
 import { useFxRates } from '../services/apiHooks';
 import { useDisplayCurrency } from '../hooks/useDisplayCurrency';
@@ -143,7 +143,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const handleCreateSubmit = async (payload: Parameters<typeof createRecord>[0]): Promise<void> => {
     await createRecord(payload);
   };
-  const handleRefreshAssets = (recordId: string) => refreshCalculations(recordId);
+  const handleRefreshAssets = (record: RefreshRecordTarget) => refreshCalculations(record);
   const handleFinalize = (record: { id: string }) => finalizeRecord(record);
   const handleUnlock = (record: { id: string }) => unlockRecord(record);
   const handleDelete = (record: { id: string }) => deleteRecord(record);
@@ -203,7 +203,6 @@ export const NisabYearRecordsPage: React.FC = () => {
               onCancelDate={() => setEditingStartDateRecordId(null)}
               onDateChange={setNewStartDate}
               onGeneratePdf={(record) => {
-                const totalLiabilities = allLiabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0);
                 import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
                   const generator = new ReportGenerator(userCurrency);
                   // Same identity fallback the rest of the app uses (Layout, Dashboard).
@@ -211,7 +210,10 @@ export const NisabYearRecordsPage: React.FC = () => {
                   // recipient 'User'.
                   const owner =
                     user?.firstName || user?.username || user?.email?.split('@')[0] || 'User';
-                  generator.generateHawlStatement(record as any, allAssets, owner, totalLiabilities);
+                  // The statement reads the record's stored figures — passing the
+                  // raw asset/liability lists recomputed a second recipe that
+                  // contradicted the engine's own rows on the same page.
+                  generator.generateHawlStatement(record as any, owner);
                 });
               }}
               onCreateRecord={() => setShowCreateModal(true)}
@@ -235,7 +237,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                   payments={recordPayments as unknown[]}
                   canRecordPayment={!isFullyPaid && activeRecord.status === 'DRAFT'}
                   onRecordPayment={() => setShowPaymentModal(true)}
-                  onRefreshCalculations={() => handleRefreshAssets(activeRecord.id)}
+                  onRefreshCalculations={() => handleRefreshAssets(activeRecord)}
                   formatCurrency={formatCurrency}
                 />
               </div>

@@ -39,10 +39,11 @@ import type {
   LiveHawlData,
   HawlInterruptionEvent,
 } from '@zakapp/shared';
+import { HAWL_CONSTANTS, calculateHawlCompletionDate as hawlCompletionDate } from '@zakapp/shared';
 import { readEncryptedAmount, decryptNumericFields } from '../utils/encryptedNumbers';
 
 export class HawlTrackingService {
-  private readonly HAWL_DURATION_DAYS = 354; // Lunar year
+  private readonly HAWL_DURATION_DAYS = HAWL_CONSTANTS.DAYS_LUNAR; // Lunar year
   private readonly HAWL_TOLERANCE_DAYS = 5; // ±5 days for calendar adjustment
   private readonly ABSOLUTE_ZERO_THRESHOLD = 1; // $1 minimum to maintain Hawl
 
@@ -545,7 +546,7 @@ export class HawlTrackingService {
    * @returns Hawl completion date (354 days later)
    */
   calculateHawlCompletionDate(hawlStartDate: Date): Date {
-    return moment(hawlStartDate).add(this.HAWL_DURATION_DAYS, 'days').toDate();
+    return hawlCompletionDate(hawlStartDate);
   }
 
   /**

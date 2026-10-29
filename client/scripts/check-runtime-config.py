@@ -28,7 +28,14 @@ WHAT IT CHECKS
        to override).
     3. It is not gitignored — `git check-ignore` must return non-zero.
     4. index.html references /config.js.
-    5. getApiBaseUrl() reads APP_CONFIG.API_BASE_URL before its fallback.
+    5. getApiBaseUrl() reads APP_CONFIG.API_BASE_URL before its fallback,
+       bounded to that function's own body so the check cannot pass on its
+       neighbour's text.
+    6. RECONCILE_ENABLED is present in the tracked source config, defaults
+       to 'false' there, and its getter prefers the runtime value before
+       the build-time fallback.
+    7. Both shipped entrypoint heredocs carry the flag, defaulted off.
+    8. The compose file exposes the flag for operators, defaulted off.
 """
 from __future__ import annotations
 
@@ -98,17 +105,71 @@ def main() -> int:
     else:
         check(False, "index.html found")
 
-    # 5. The resolver prefers it.
+    # 5. The resolver prefers it. The body is bounded to the function's own
+    #    lines: an unbounded window reads the NEXT getter after it and both
+    #    substrings pass vacuously - measured (the runtime branch deleted ->
+    #    still "ok" with a fixed 600-char slice).
     if CONFIG_TS.is_file():
         ts = CONFIG_TS.read_text()
-        i = ts.find("getApiBaseUrl")
-        body = ts[i:i + 600] if i != -1 else ""
-        check(
-            "APP_CONFIG" in body and "API_BASE_URL" in body,
-            "getApiBaseUrl() prefers window.APP_CONFIG.API_BASE_URL",
-        )
     else:
+        ts = ""
         check(False, "src/config.ts found")
+
+    def getter_body(name: str) -> str:
+        i = ts.find(f"export const {name}")
+        if i == -1:
+            return ""
+        j = ts.find("\n};", i)
+        return ts[i:j + 2] if j != -1 else ts[i:i + 400]
+
+    body = getter_body("getApiBaseUrl")
+    check(
+        "window.APP_CONFIG?.API_BASE_URL" in body and "VITE_API_BASE_URL" in body,
+        "getApiBaseUrl() prefers window.APP_CONFIG.API_BASE_URL",
+    )
+
+    # 6. The reconciliation feature flag: present in the tracked source config
+    #    and exposed by a getter that prefers the runtime value before its
+    #    build-time fallback. A flag absent from config.js reads "undefined"
+    #    wherever the feature is wanted, and a getter that ignores the runtime
+    #    value makes the flag un-flippable without a rebuild - the same failure
+    #    class as checks 4 and 5.
+    if PUBLIC_CONFIG.is_file():
+        src = PUBLIC_CONFIG.read_text()
+        check("RECONCILE_ENABLED" in src,
+              "config.js carries RECONCILE_ENABLED (runtime-flag surface)")
+        m2 = re.search(r"RECONCILE_ENABLED\s*:\s*['\"]([^'\"]*)['\"]", src)
+        check(bool(m2) and m2.group(1) == "false",
+              "config.js defaults RECONCILE_ENABLED to 'false'")
+    if ts:
+        body = getter_body("getReconcileEnabled")
+        check(
+            "window.APP_CONFIG?.RECONCILE_ENABLED" in body
+            and "window.APP_CONFIG.RECONCILE_ENABLED === 'true'" in body
+            and "VITE_RECONCILE_ENABLED" in body,
+            "getReconcileEnabled() prefers the runtime config, then the env var",
+        )
+
+    # 7. The instance flag reaches BOTH shipped entrypoint heredocs, defaulted
+    #    off - deleting it from the compose file alone would otherwise leave
+    #    every check green while the runtime channel is gone.
+    for rel in ("docker/nginx-entrypoint.sh", "docker/frontend-entrypoint.sh"):
+        p = CLIENT.parent / rel
+        if p.is_file():
+            check("${REACT_APP_RECONCILE_ENABLED:-false}" in p.read_text(),
+                  f"{rel} carries the flag, default off")
+        else:
+            check(False, f"{rel} exists (flag channel check)")
+
+    # 8. The compose file documents the flag for operators.
+    compose = CLIENT.parent / "docker-compose.yml"
+    if compose.is_file():
+        c = compose.read_text()
+        check("REACT_APP_RECONCILE_ENABLED" in c
+              and "${REACT_APP_RECONCILE_ENABLED:-false}" in c,
+              "docker-compose.yml exposes the flag, default off")
+    else:
+        check(False, "docker-compose.yml exists (flag channel check)")
 
     if failures:
         print(f"\nFAIL: {len(failures)} runtime-config problem(s).")

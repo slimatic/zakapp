@@ -19,7 +19,7 @@
 import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { calculateWealth } from '../core/calculations/wealthCalculator';
-import { gregorianToHijri } from '../utils/calendarConverter';
+import { hawlDates } from '../core/calculations/hawl';
 
 export interface CreateRecordPayload {
   assetIds: string[];
@@ -47,7 +47,24 @@ export interface UseNisabRecordActionsOptions {
   onDateSaved?: () => void;
 }
 
-const HAWL_MS = 354 * 24 * 60 * 60 * 1000;
+/** The parts of a record a refresh needs: identity, lock state, stored nisab. */
+export interface RefreshRecordTarget {
+  id: string;
+  status?: string;
+  nisabThresholdAtStart?: string | number | null;
+}
+
+/** The create-path nisab rule, shared with refresh (same rule, same operator). */
+function zakatDueAboveThreshold(netZakatableWealth: number, threshold: number): number {
+  return netZakatableWealth >= threshold ? netZakatableWealth * 0.025 : 0;
+}
+
+/** Parse a record's stored nisabThresholdAtStart; NaN when absent or malformed. */
+function parseStoredThreshold(raw: string | number | null | undefined): number {
+  if (typeof raw === 'number') return raw;
+  if (typeof raw === 'string' && raw.trim() !== '') return Number(raw);
+  return NaN;
+}
 
 export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
   const {
@@ -71,17 +88,17 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
       const selectedLiabilities = normalizedLiabilities.filter(l => liabilityIds.includes(l.id));
 
       const { totalWealth, netZakatableWealth } = calculateWealth(
-        selectedAssets as never, selectedLiabilities as never, new Date(), userMethodology as never
+        // Compute over the hawl year the user previewed (the modal's picker
+        // date), the same inputs the review step shows — not a "now" that
+        // slides the liability window and stores figures nobody approved.
+        selectedAssets as never, selectedLiabilities as never, date, userMethodology as never
       );
       const zakatAmount = netZakatableWealth >= threshold ? netZakatableWealth * 0.025 : 0;
 
-      const completionDate = new Date(date.getTime() + HAWL_MS);
-      const startHijri = gregorianToHijri(date);
+      const hawl = hawlDates(date);
 
       await addRecord({
-        hawlStartDate: date.toISOString(),
-        hawlCompletionDate: completionDate.toISOString(),
-        hijriYear: startHijri.hy,
+        ...hawl,
         nisabBasis: basis,
         totalWealth,
         zakatableWealth: netZakatableWealth,
@@ -102,16 +119,31 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
     }
   }, [normalizedAssets, normalizedLiabilities, userMethodology, userCurrency, addRecord, onCreated]);
 
-  /** Recalculate a record's wealth from the current (normalized) assets. */
-  const refreshCalculations = useCallback(async (recordId: string): Promise<void> => {
+  /** Refresh the record's wealth figures from the current (normalized) assets. */
+  const refreshCalculations = useCallback(async (record: RefreshRecordTarget): Promise<void> => {
     try {
+      // A finalized record is locked from edits (finalizeRecord's own wording) —
+      // never rewrite its figures in place.
+      if (record.status === 'FINALIZED') {
+        toast.error('Record is finalized and locked from edits');
+        return;
+      }
+      const threshold = parseStoredThreshold(record.nisabThresholdAtStart);
+      // No stored threshold ⇒ the create-path comparison is unknowable. Refuse
+      // loudly rather than writing figures that would silently misstate zakat.
+      if (!Number.isFinite(threshold) || threshold <= 0) {
+        console.error('Nisab record is missing its stored threshold:', record.id);
+        toast.error('Nisab threshold not found for this record');
+        return;
+      }
       const { totalWealth, netZakatableWealth } = calculateWealth(
         normalizedAssets as never, normalizedLiabilities as never, new Date(), userMethodology as never
       );
-      await updateRecord(recordId, {
+      const zakatAmount = zakatDueAboveThreshold(netZakatableWealth, threshold);
+      await updateRecord(record.id, {
         totalWealth,
         zakatableWealth: netZakatableWealth,
-        zakatAmount: netZakatableWealth * 0.025,
+        zakatAmount,
       });
       toast.success('Assets refreshed and calculations updated');
     } catch (error) {
@@ -144,14 +176,8 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
   const saveStartDate = useCallback(async (recordId: string, startDateIso: string): Promise<void> => {
     if (!startDateIso) return;
     const start = new Date(startDateIso);
-    const completion = new Date(start.getTime() + HAWL_MS);
-    const startHijri = gregorianToHijri(start);
 
-    await updateRecord(recordId, {
-      hawlStartDate: start.toISOString(),
-      hawlCompletionDate: completion.toISOString(),
-      hijriYear: startHijri.hy,
-    });
+    await updateRecord(recordId, hawlDates(start));
     onDateSaved?.();
     toast.success('Date updated');
   }, [updateRecord, onDateSaved]);

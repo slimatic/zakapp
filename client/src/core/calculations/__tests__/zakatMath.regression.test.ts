@@ -15,6 +15,8 @@
  * Zakat rate 2.5% (1/40) - agreed across all four schools.
  */
 import { describe, it, expect } from 'vitest';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
 import { calculateZakat, isAssetZakatable, getAssetZakatableValue } from '../zakat';
 import { Asset, AssetType } from '../../../types';
 
@@ -33,7 +35,14 @@ const asset = (type: AssetType, value: number, extra: Partial<Asset> = {}): Asse
     ...extra,
   }) as Asset;
 
-const liability = (type: string, amount: number) => ({ type, amount });
+const liability = (type: string, amount: number, extra: Record<string, unknown> = {}) => ({
+  type,
+  amount,
+  // Due within the window of the reference date the tests pass, unless a case
+  // states otherwise.
+  dueDate: '2024-06-01T00:00:00Z',
+  ...extra,
+});
 
 describe('zakat math — nisab threshold selection', () => {
   it('STANDARD uses the GOLD nisab, so 5,000 is below it and nothing is due', () => {
@@ -77,8 +86,9 @@ describe('zakat math — rate and negative net worth', () => {
   });
 
   it('deducting liabilities cannot produce NEGATIVE zakat', () => {
-    // Assets 1,000, deductible loan 5,000 -> net worth negative. Zakat is never negative.
+    // Rule: assets 1,000, deductible debt 5,000 -> net worth negative. Zakat is never negative.
     // This is the one case where a sign error would silently CREATE wealth for the user.
+    // The debt deducts under the shared liability rule (it is past-due), not via a type list.
     const r = calculateZakat(
       [asset(AssetType.CASH, 1000)],
       [liability('LOAN', 5000)],
@@ -91,44 +101,41 @@ describe('zakat math — rate and negative net worth', () => {
   });
 });
 
-describe('zakat math — debt deduction scope differs by school', () => {
-  it("SHAFII deducts LOAN and BUSINESS_DEBT but NOT a credit card", () => {
-    // Rule: the four schools differ on what clears a debt before zakat. Shafi'i is the
-    // narrower list in this app. 20000 - 5000 = 15000 ; card's 1000 stays in.
-    const r = calculateZakat(
-      [asset(AssetType.CASH, 20000)],
-      [liability('LOAN', 5000), liability('CREDIT_CARD', 1000)],
-      NISAB,
-      'SHAFII'
-    );
-    expect(r.deductibleLiabilities).toBeCloseTo(5000, 6);
-    expect(r.netWorth).toBeCloseTo(15000, 6);
-    expect(r.zakatDue).toBeCloseTo(375, 6); // 15000 * 0.025
+describe('zakat math — the one debt-deduction rule, same for every school', () => {
+  const ref = new Date('2024-01-01T00:00:00Z');
+
+  it('the same debts deduct the same set under every methodology', () => {
+    // Rule: the engine applies one stated deduction rule consistently — a
+    // user-confirmed amount moves verbatim, else a debt due within the coming
+    // lunar year deducts. Which debts each school would additionally count is a
+    // question left to a qualified scholar, so the school never changes this set.
+    const debts = [liability('LOAN', 5000), liability('CREDIT_CARD', 1000)];
+    for (const methodology of ['STANDARD', 'SHAFII', 'HANAFI', 'MALIKI', 'HANBALI'] as const) {
+      const r = calculateZakat([asset(AssetType.CASH, 20000)], debts, NISAB, methodology, ref);
+      expect(r.deductibleLiabilities, methodology).toBeCloseTo(6000, 6);
+    }
+    // The school still moves money where it belongs: the nisab source. Hanafi
+    // uses the silver threshold, so the same 20,000 - 6,000 is fully zakatable
+    // there: 14000 * 0.025 = 350.
+    const hanafi = calculateZakat([asset(AssetType.CASH, 20000)], debts, NISAB, 'HANAFI', ref);
+    expect(hanafi.zakatDue).toBeCloseTo(350, 6);
   });
 
-  it('HANAFI additionally deducts MORTGAGE and CREDIT_CARD', () => {
-    // Same inputs, Hanafi's broader list -> 20000 - 6000 = 14000.
+  it('a debt due beyond the year with no confirmed portion shows in totals but never deducts', () => {
+    // Rule: a balance alone cannot yield an amortization schedule, so only the
+    // user's confirmed portion (none here) is deductible for a debt due later
+    // than the window. It remains owed in the totals.
     const r = calculateZakat(
       [asset(AssetType.CASH, 20000)],
-      [liability('LOAN', 5000), liability('CREDIT_CARD', 1000)],
+      [liability('LOAN', 5000), liability('OTHER', 9999, { dueDate: '2030-01-01T00:00:00Z' })],
       NISAB,
-      'HANAFI'
-    );
-    expect(r.deductibleLiabilities).toBeCloseTo(6000, 6);
-    expect(r.netWorth).toBeCloseTo(14000, 6);
-    expect(r.zakatDue).toBeCloseTo(350, 6);
-  });
-
-  it('a NON-deductible liability still shows in totals but never reduces net worth', () => {
-    const r = calculateZakat(
-      [asset(AssetType.CASH, 20000)],
-      [liability('LOAN', 5000), liability('OTHER', 9999)],
-      NISAB,
-      'SHAFII'
+      'SHAFII',
+      ref
     );
     expect(r.totalLiabilities).toBeCloseTo(14999, 6);
     expect(r.deductibleLiabilities).toBeCloseTo(5000, 6);
     expect(r.netWorth).toBeCloseTo(15000, 6);
+    expect(r.zakatDue).toBeCloseTo(375, 6);
   });
 });
 
@@ -195,5 +202,70 @@ describe('zakat math — decimal precision', () => {
     const r = calculateZakat(broken, [], NISAB, 'STANDARD');
     expect(Number.isNaN(r.zakatDue)).toBe(false);
     expect(r.zakatDue).toBe(0);
+  });
+});
+
+/**
+ * The flat-rate calculator is retired, and stays retired.
+ *
+ * Two modules exported a rate calculator that multiplied by 2.5% without ever comparing the
+ * wealth against nisab — `utils/precision.ts` (`calculateZakat(wealth)`, plus a
+ * `calculateZakatableWealth` shortcut that also skipped the threshold) and
+ * `utils/assetModifiers.ts` (`calculateZakat(value, modifier, rate)`). Their only consumers were
+ * `SnapshotForm`, a yearly-snapshot form that no page or route rendered, and nothing at all,
+ * respectively: unreachable, yet still importable, so a future caller would have reported zakat
+ * due on wealth below nisab and nothing would have failed.
+ *
+ * One rate path may exist — the canonical engine in `../zakat`, which compares against nisab
+ * and applies the methodology's rules. These assertions read source rather than importing the
+ * helpers, so the guard still runs and still names the offending file when they are absent.
+ */
+const CLIENT_SRC = resolve(__dirname, '../../../../..', 'client/src');
+const CANONICAL_ENGINE = 'core/calculations/zakat.ts';
+
+function walkSource(dir: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      if (entry === '__tests__' || entry === 'node_modules') continue;
+      walkSource(full, out);
+    } else if (/\.(ts|tsx)$/.test(entry) && !/\.(test|spec)\.(ts|tsx)$/.test(entry)) {
+      out.push(full);
+    }
+  }
+  return out;
+}
+
+/** An exported rate calculator, in any declaration shape. */
+const RATE_EXPORT = /export\s+(?:async\s+)?(?:function|const|let|var)\s+calculateZakat\b/;
+
+describe('the flat rate calculator is retired', () => {
+  it('leaves only the precision primitives in the helper module', () => {
+    const source = readFileSync(resolve(CLIENT_SRC, 'utils/precision.ts'), 'utf8');
+
+    // The survivors the live widgets use.
+    expect(source).toMatch(/export\s+function\s+toDecimal\b/);
+    expect(source).toMatch(/export\s+function\s+toNumber\b/);
+
+    // No threshold-blind rate path may be exportable from here again.
+    expect(source).not.toMatch(RATE_EXPORT);
+    expect(source).not.toMatch(/export\s+(?:function|const)\s+calculateZakatableWealth\b/);
+  });
+
+  it('has exactly one rate calculator in the client tree, the canonical engine', () => {
+    const files = walkSource(CLIENT_SRC);
+    // A scan that examined nothing cannot fail; fail before claiming a pass.
+    expect(files.length).toBeGreaterThan(100);
+
+    const exporters = files
+      .filter((file) => RATE_EXPORT.test(readFileSync(file, 'utf8')))
+      .map((file) => relative(CLIENT_SRC, file).split('\\').join('/'));
+
+    expect(exporters).toEqual([CANONICAL_ENGINE]);
+  });
+
+  it('has removed the form that imported the flat helpers', () => {
+    // `SnapshotForm` was their only importer and nothing rendered it.
+    expect(existsSync(resolve(CLIENT_SRC, 'components/tracking/SnapshotForm.tsx'))).toBe(false);
   });
 });

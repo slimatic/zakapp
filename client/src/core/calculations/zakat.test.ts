@@ -66,5 +66,39 @@ describe('Zakat Calculation Logic', () => {
         expect(result.zakatDue).toBe(0);
         expect(result.isZakatObligatory).toBe(false);
     });
+});
 
+describe('calculateZakat: inactive assets (closed accounts)', () => {
+    it('totalAssets and zakatableAssets exclude inactive assets', () => {
+        // Synthetic values. A closed (inactive) account must not inflate the
+        // totals or push a real portfolio over the nisab threshold.
+        const assets: Asset[] = [
+            {
+                id: '1',
+                type: AssetType.CASH,
+                name: 'Active cash',
+                value: 1000,
+                currency: 'USD',
+                isActive: true,
+                createdAt: '',
+                updatedAt: ''
+            },
+            {
+                id: '2',
+                type: AssetType.CASH,
+                name: 'Closed account',
+                value: 5000,
+                currency: 'USD',
+                isActive: false,
+                createdAt: '',
+                updatedAt: ''
+            }
+        ];
+
+        const result = calculateZakat(assets, [], { gold: 100, silver: 100 }, 'STANDARD');
+        expect(result.totalAssets).toBe(1000);
+        expect(result.zakatableAssets).toBe(1000);
+        expect(result.zakatDue).toBe(25);
+        expect(result.isZakatObligatory).toBe(true);
+    });
 });

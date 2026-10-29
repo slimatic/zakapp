@@ -151,6 +151,17 @@ const e = (school: string, why: string): RulingExplanation['reasoning'] =>
   `Under the ${school} methodology this asset type is exempt from Zakat. ${why}`;
 
 /**
+ * Debts owed to you: each entry below conditions zakat on the claim being
+ * collectible, and the asset record carries no such fact, so the engines leave
+ * the type out until the user answers. `z()` cannot frame these entries — its
+ * "this asset type is zakatable" opening contradicts both that default and the
+ * entry's own condition. This helper states the app's rule and carries each
+ * entry's sentence unchanged.
+ */
+const debtRule = (school: string, schoolRule: string): RulingExplanation['reasoning'] =>
+  `This app cannot tell a collectible claim from a doubtful one, so debts owed to you stay out of the zakat base by default. Under the ${school} methodology: ${schoolRule}`;
+
+/**
  * THE REGISTRY — 5 methodologies × 11 asset types.
  * Keys must stay in sync with METHODOLOGIES in core/calculations/methodology.ts.
  */
@@ -202,8 +213,8 @@ export const RULINGS: Registry = {
       citations: [CIT.fiqhAlZakat, CIT.aaoifiZakat],
     },
     [AssetType.DEBTS_OWED_TO_YOU]: {
-      ruling: 'Zakatable if realistically collectible.',
-      reasoning: z(SCHOOL.STANDARD.label, 'Strong debts (collectible) are included in zakatable wealth; doubtful or bad debts are not. Use the override if your situation differs.'),
+      ruling: 'Not included by default — zakatable if realistically collectible; mark the asset zakatable to include it.',
+      reasoning: debtRule(SCHOOL.STANDARD.label, 'Strong debts (collectible) are included in zakatable wealth; doubtful or bad debts are not. Use the override if your situation differs.'),
       citations: [CIT.fiqhAlZakat, CIT.aaoifiZakat],
     },
     [AssetType.OTHER]: {
@@ -260,8 +271,8 @@ export const RULINGS: Registry = {
       citations: [CIT.seekersGuidanceZakat, CIT.fiqhAlZakat],
     },
     [AssetType.DEBTS_OWED_TO_YOU]: {
-      ruling: 'Zakatable if a strong claim (collectible).',
-      reasoning: z(SCHOOL.HANAFI.label, 'The Hanafi school includes strong debts and treats weak claims differently — apply the override per your scholar.'),
+      ruling: 'Not included by default — zakatable if a strong claim (collectible); mark the asset zakatable to include it.',
+      reasoning: debtRule(SCHOOL.HANAFI.label, 'The Hanafi school includes strong debts and treats weak claims differently — apply the override per your scholar.'),
       citations: [CIT.seekersGuidanceZakat, CIT.fiqhAlZakat],
     },
     [AssetType.OTHER]: {
@@ -318,8 +329,8 @@ export const RULINGS: Registry = {
       citations: [CIT.seekersGuidanceZakat, CIT.fiqhAlZakat],
     },
     [AssetType.DEBTS_OWED_TO_YOU]: {
-      ruling: 'Zakatable when the debtor is able and the claim is strong.',
-      reasoning: z(SCHOOL.SHAFII.label, 'Strong debts enter the zakat base; hopeless debts are excused until recovered.'),
+      ruling: 'Not included by default — zakatable when the debtor is able and the claim is strong; mark the asset zakatable to include it.',
+      reasoning: debtRule(SCHOOL.SHAFII.label, 'Strong debts enter the zakat base; hopeless debts are excused until recovered.'),
       citations: [CIT.seekersGuidanceZakat, CIT.fiqhAlZakat],
     },
     [AssetType.OTHER]: {
@@ -376,8 +387,8 @@ export const RULINGS: Registry = {
       citations: [CIT.seekersGuidanceZakat, CIT.fiqhAlZakat],
     },
     [AssetType.DEBTS_OWED_TO_YOU]: {
-      ruling: 'Zakatable when collectible.',
-      reasoning: z(SCHOOL.MALIKI.label, 'Strong claims join the zakat base; doubtful debts wait until recovered.'),
+      ruling: 'Not included by default — zakatable when collectible; mark the asset zakatable to include it.',
+      reasoning: debtRule(SCHOOL.MALIKI.label, 'Strong claims join the zakat base; doubtful debts wait until recovered.'),
       citations: [CIT.seekersGuidanceZakat, CIT.fiqhAlZakat],
     },
     [AssetType.OTHER]: {
@@ -434,8 +445,8 @@ export const RULINGS: Registry = {
       citations: [CIT.seekersGuidanceZakat, CIT.fiqhAlZakat],
     },
     [AssetType.DEBTS_OWED_TO_YOU]: {
-      ruling: 'Zakatable when collectible.',
-      reasoning: z(SCHOOL.HANBALI.label, 'Strong claims join the zakat base; hopeless debts are deferred.'),
+      ruling: 'Not included by default — zakatable when collectible; mark the asset zakatable to include it.',
+      reasoning: debtRule(SCHOOL.HANBALI.label, 'Strong claims join the zakat base; hopeless debts are deferred.'),
       citations: [CIT.seekersGuidanceZakat, CIT.fiqhAlZakat],
     },
     [AssetType.OTHER]: {

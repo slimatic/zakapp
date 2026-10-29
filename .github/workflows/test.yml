@@ -119,6 +119,16 @@ jobs:
           BASE="origin/${{ github.base_ref }}"
         else
           BASE="${{ github.event.before }}"
+          # A branch's first push reports an all-zero "before": there is no
+          # parent commit, and `git diff --check 0000…...HEAD` dies with
+          # "Invalid symmetric difference expression" — which this step then
+          # reads as a whitespace failure and blocks every new release branch.
+          # Diff from the merge base with the default branch instead; that is
+          # the same comparison the pull_request run makes.
+          if [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            git fetch origin "${{ github.event.repository.default_branch }}" --depth=1 2>/dev/null || true
+            BASE="$(git merge-base "origin/${{ github.event.repository.default_branch }}" HEAD || echo HEAD)"
+          fi
         fi
         git fetch origin "$BASE" --depth=1 2>/dev/null || true
         OUT=$(git diff --check "$BASE"...HEAD 2>&1 || true)

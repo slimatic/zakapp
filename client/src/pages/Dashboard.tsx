@@ -26,7 +26,6 @@ import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
 import { useUserSettingsRepository } from '../hooks/useUserSettingsRepository';
 import { calculateZakat } from '../core/calculations/zakat';
-import { DEFAULT_NISAB_DATA } from '../core/calculations/nisab';
 import { DashboardHero, HawlCard, QuickActions, AssetRow } from '../components/dashboard/DashboardTop';
 import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
@@ -42,6 +41,7 @@ import { MigrationWizard } from '../components/migration/MigrationWizard';
 import { useMigration } from '../hooks/useMigration';
 import { Button } from '../components/ui/Button';
 import { getNisabStandard } from '../core/calculations/nisab';
+import { HAWL_DAYS } from '../core/calculations/hawl';
 
 /**
  * Educational Module Component
@@ -315,8 +315,7 @@ export const Dashboard: React.FC = () => {
   const nisabStandard = getNisabStandard(display.nisabStandard);
   const {
     nisabAmount,
-    goldPrice,
-    silverPrice,
+    nisabPair,
     isLoading: nisabLoading,
     error: nisabError,
   } = useNisabThreshold(userCurrency, nisabBasis, display.nisabStandard);
@@ -356,23 +355,18 @@ export const Dashboard: React.FC = () => {
     return Number.isFinite(n) ? (n as number) : 0;
   };
 
-  // Real metal prices -> the nisab pair the engine expects. Undefined prices must
+  // Both engine thresholds, in the user's convention, straight from the
+  // threshold hook — the hook computes them from the per-gram prices it already
+  // applies to the chip's figure, so the page holds no gram multiplication of
+  // its own. (The recompute that used to live here multiplied by the bundled
+  // DEFAULT grams, so an 'aaoifi' user's hero disagreed with their own chip:
+  // wealth between 65x85=5,525.00 and 65x87.48=5,686.20 was "Above nisab" on
+  // the chip with a 0.00 due figure in the hero.) Undefined prices must
   // NOT become zero: a zero nisab would mark every user as "Above nisab".
-  const nisabPrices = useMemo(
-    () =>
-      goldPrice !== undefined && silverPrice !== undefined
-        ? {
-            gold: goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams,
-            silver: silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams
-          }
-        : null,
-    [goldPrice, silverPrice]
-  );
-
   const calculation = useMemo(() => {
-    if (!nisabPrices) return null;
-    return calculateZakat(assets, liabilities, nisabPrices, methodology);
-  }, [assets, liabilities, nisabPrices, methodology]);
+    if (!nisabPair) return null;
+    return calculateZakat(assets, liabilities, nisabPair, methodology);
+  }, [assets, liabilities, nisabPair, methodology]);
 
   /**
    * Unknown / not-yet-calculated state. Distinguishes "still loading" from
@@ -381,7 +375,7 @@ export const Dashboard: React.FC = () => {
   const heroState: 'loading' | 'ready' | 'unavailable' =
     assetsLoading || recordsLoading || liabilitiesLoading || nisabLoading
       ? 'loading'
-      : !nisabPrices || nisabError || !calculation
+      : !nisabPair || nisabError || !calculation
         ? 'unavailable'
         : 'ready';
 
@@ -418,8 +412,6 @@ export const Dashboard: React.FC = () => {
 
   /* ── Hawl progress ─────────────────────────────────────────────────────── */
 
-  const TOTAL_HAWL_DAYS = 354; // lunar year
-
   const hawl = useMemo(() => {
     const startStr = activeRecord?.hawlStartDate || activeRecord?.startDate;
     let elapsed = toNum(activeRecord?.daysElapsed);
@@ -430,11 +422,11 @@ export const Dashboard: React.FC = () => {
       if (!Number.isNaN(start.getTime())) {
         const diffDays = Math.floor((Date.now() - start.getTime()) / 86_400_000);
         elapsed = Math.max(0, diffDays);
-        remaining = Math.max(0, TOTAL_HAWL_DAYS - elapsed);
+        remaining = Math.max(0, HAWL_DAYS - elapsed);
       }
     }
 
-    const progress = Math.min(Math.max(elapsed / TOTAL_HAWL_DAYS, 0), 1);
+    const progress = Math.min(Math.max(elapsed / HAWL_DAYS, 0), 1);
     const due = activeRecord?.hawlCompletionDate;
     const dueDate = due
       ? new Date(due).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -544,7 +536,7 @@ export const Dashboard: React.FC = () => {
         <HawlCard
           progress={hawl.progress}
           daysElapsed={hawl.elapsed}
-          totalDays={354}
+          totalDays={HAWL_DAYS}
           daysRemaining={hawl.remaining}
           dueDate={hawl.dueDate}
           aboveNisab={aboveNisab}
