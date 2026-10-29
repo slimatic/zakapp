@@ -217,4 +217,32 @@ describe('useNisabRecordActions (#341 slice 4)', () => {
         await act(() => result.current.saveStartDate('r1', ''));
         expect(opts.updateRecord).not.toHaveBeenCalled();
     });
+
+    it('createRecord stamps the school its own figures were computed under', async () => {
+        const opts = baseOptions();
+        opts.userMethodology = 'SHAFII';
+        const { result } = renderHook(() => useNisabRecordActions(opts));
+
+        await act(() => result.current.createRecord(payload));
+
+        expect(opts.addRecord.mock.calls[0][0].methodologyUsed).toBe('SHAFII');
+    });
+
+    it("refreshCalculations continues the record's own school, not the user's new one", async () => {
+        const opts = baseOptions();
+        // The user has since switched to Hanafi; the record was built under
+        // Shafi'i, which exempts jewelry.
+        opts.userMethodology = 'HANAFI';
+        opts.normalizedAssets = [{ id: 'a1', value: 1000, type: 'GOLD' }] as never;
+
+        const { result } = renderHook(() => useNisabRecordActions(opts));
+        await act(() => result.current.refreshCalculations({
+            id: 'r1', nisabThresholdAtStart: '100', methodologyUsed: 'SHAFII',
+        } as never));
+
+        const patch = opts.updateRecord.mock.calls[0][1];
+        // Shafi'i: the ring is not zakatable, so there is nothing to charge.
+        expect(patch.zakatableWealth).toBe(0);
+        expect(patch.zakatAmount).toBe(0);
+    });
 });
