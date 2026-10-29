@@ -23,6 +23,7 @@ import type { Asset } from '../../types';
 const h = vi.hoisted(() => ({
     records: [] as Array<Record<string, unknown>>,
     assets: [] as Array<Record<string, unknown>>,
+    liabilities: [] as Array<Record<string, unknown>>,
     settings: null as Record<string, unknown> | null,
     nisab: {} as Partial<Record<'GOLD' | 'SILVER', number>>,
     thresholdCalls: [] as Array<Array<string | undefined>>,
@@ -35,7 +36,9 @@ vi.mock('../useNisabRecordRepository', () => ({
 vi.mock('../useAssetRepository', () => ({
     useAssetRepository: () => ({ assets: h.assets, isLoading: false }),
 }));
-
+vi.mock('../useLiabilityRepository', () => ({
+    useLiabilityRepository: () => ({ liabilities: h.liabilities, isLoading: false }),
+}));
 vi.mock('../useUserSettingsRepository', () => ({
     useUserSettingsRepository: () => ({ settings: h.settings, isLoading: false }),
 }));
@@ -187,6 +190,80 @@ describe('useHawlStatus live totals', () => {
         const { result } = renderHook(() => useHawlStatus('r1'));
 
         expect(result.current.liveHawlData?.isAboveNisab).toBeUndefined();
+        expect(result.current.liveHawlData?.zakatDue).toBe(0);
+    });
+});
+
+describe('useHawlStatus deducts liabilities on the shared rule', () => {
+    const days = (n: number) => new Date(Date.now() + n * 24 * 60 * 60 * 1000).toISOString();
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        h.records = [{ id: 'r1', hawlStartDate: '2026-01-01T00:00:00.000Z' }];
+        h.assets = [{ id: 'cash', name: 'Cash', type: 'CASH', value: 1000, currency: 'USD', isActive: true, createdAt: '', updatedAt: '', zakatEligible: true }];
+        h.settings = { preferredMethodology: 'standard' };
+        h.nisab = { GOLD: 100, SILVER: 700 };
+        h.thresholdCalls = [];
+        h.liabilities = [];
+    });
+
+    it('charges on wealth net of a debt due within the lunar year', () => {
+        h.liabilities = [
+            { id: 'l1', name: 'Card', type: 'credit_card', amount: 400, dueDate: days(30), isActive: true },
+        ];
+
+        const { result } = renderHook(() => useHawlStatus('r1'));
+
+        // (1,000 - 400) x 2.5% = 15.
+        expect(result.current.liveHawlData?.currentZakatableWealth).toBe(600);
+        expect(result.current.liveHawlData?.zakatDue).toBe(15);
+        expect(result.current.liveHawlData?.isAboveNisab).toBe(true);
+    });
+
+    it('deducts a user-confirmed portion of a far-future balance', () => {
+        h.liabilities = [
+            { id: 'l1', name: 'Mortgage', type: 'mortgage', amount: 200000, dueDate: days(3 * 365), deductibleAmount: 400, isActive: true },
+        ];
+
+        const { result } = renderHook(() => useHawlStatus('r1'));
+
+        expect(result.current.liveHawlData?.currentZakatableWealth).toBe(600);
+        expect(result.current.liveHawlData?.zakatDue).toBe(15);
+    });
+
+    it('deducts nothing for a far-future balance with no confirmed portion', () => {
+        h.liabilities = [
+            { id: 'l1', name: 'Mortgage', type: 'mortgage', amount: 200000, dueDate: days(3 * 365), isActive: true },
+        ];
+
+        const { result } = renderHook(() => useHawlStatus('r1'));
+
+        expect(result.current.liveHawlData?.currentZakatableWealth).toBe(1000);
+        expect(result.current.liveHawlData?.zakatDue).toBe(25);
+    });
+
+    it('counts a closed liability nowhere', () => {
+        h.liabilities = [
+            { id: 'l1', name: 'Paid off', type: 'loan', amount: 400, dueDate: days(10), isActive: false },
+        ];
+
+        const { result } = renderHook(() => useHawlStatus('r1'));
+
+        expect(result.current.liveHawlData?.currentZakatableWealth).toBe(1000);
+        expect(result.current.liveHawlData?.zakatDue).toBe(25);
+    });
+
+    it('drops the verdict when debts take the portfolio below nisab', () => {
+        h.assets = [{ id: 'cash', name: 'Cash', type: 'CASH', value: 1000, currency: 'USD', isActive: true, createdAt: '', updatedAt: '', zakatEligible: true }];
+        h.nisab = { GOLD: 700 };
+        h.liabilities = [
+            { id: 'l1', name: 'Card', type: 'credit_card', amount: 400, dueDate: days(30), isActive: true },
+        ];
+
+        const { result } = renderHook(() => useHawlStatus('r1'));
+
+        // 600 net against a 700 threshold: not due, and no figure invented.
+        expect(result.current.liveHawlData?.isAboveNisab).toBe(false);
         expect(result.current.liveHawlData?.zakatDue).toBe(0);
     });
 });
