@@ -23,7 +23,8 @@ import {
   CalculationSnapshotDetail,
   CreateCalculationSnapshotRequest,
   SnapshotComparison,
-  SnapshotAssetValue
+  SnapshotAssetValue,
+  calculateHawlCompletionDate
 } from '@zakapp/shared';
 
 const prisma = new PrismaClient();
@@ -404,23 +405,24 @@ export class CalculationSnapshotService {
    * @param calendarType Calendar type (GREGORIAN or HIJRI)
    * @returns Year boundaries
    */
-  private calculateZakatYearBoundaries(
+  calculateZakatYearBoundaries(
     date: Date,
     calendarType: string
   ): { zakatYearStart: Date; zakatYearEnd: Date } {
-    if (calendarType === 'HIJRI') {
-      // Simplified Hijri calculation - in production, use hijri-converter
-      // Calculate approximate Hijri year for reference purposes
-      void Math.floor((date.getFullYear() - 622) * 1.03);
-      const zakatYearStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const zakatYearEnd = new Date(zakatYearStart.getTime() + 365 * 24 * 60 * 60 * 1000);
-      return { zakatYearStart, zakatYearEnd };
+    const zakatYearStart = new Date(date);
+
+    // A Hijri zakat year is a hawl — 354 days, not the solar 365. These two
+    // boundaries are stored with the snapshot and read back as the year the
+    // figures cover, so a 365-day span labelled lunar misstates the period by
+    // eleven days. One rule, from the shared hawl constants.
+    if (String(calendarType).toUpperCase() === 'HIJRI') {
+      return { zakatYearStart, zakatYearEnd: calculateHawlCompletionDate(zakatYearStart) };
     }
 
-    // Gregorian calendar - default to lunar year from reference date
-    const zakatYearStart = new Date(date);
-    const zakatYearEnd = new Date(zakatYearStart.getTime() + 365 * 24 * 60 * 60 * 1000);
-
+    // Gregorian / solar: a 365-day year. (The previous comment here claimed
+    // this branch "defaults to lunar" while computing a solar span.)
+    const DAYS_SOLAR = 365;
+    const zakatYearEnd = new Date(zakatYearStart.getTime() + DAYS_SOLAR * 24 * 60 * 60 * 1000);
     return { zakatYearStart, zakatYearEnd };
   }
 }
