@@ -52,6 +52,8 @@ export interface RefreshRecordTarget {
   id: string;
   status?: string;
   nisabThresholdAtStart?: string | number | null;
+  /** The school this record's stored figures were computed under. */
+  methodologyUsed?: string;
 }
 
 /** The create-path nisab rule, shared with refresh (same rule, same operator). */
@@ -105,6 +107,10 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
         zakatAmount,
         nisabThresholdAtStart: threshold.toString(),
         currency: userCurrency,
+        // The school these figures were computed with. Without the stamp a
+        // record has no memory of its own rule: the tracker and a later refresh
+        // would both silently follow whatever school the user picks next.
+        methodologyUsed: userMethodology,
         status: 'DRAFT',
       });
 
@@ -137,7 +143,11 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
         return;
       }
       const { totalWealth, netZakatableWealth } = calculateWealth(
-        normalizedAssets as never, normalizedLiabilities as never, new Date(), userMethodology as never
+        normalizedAssets as never, normalizedLiabilities as never, new Date(),
+        // A refresh continues the record's own rule. Recomputing under the
+        // user's current school would rewrite the figures while the record
+        // still says it was computed under another one.
+        (record.methodologyUsed || userMethodology) as never
       );
       const zakatAmount = zakatDueAboveThreshold(netZakatableWealth, threshold);
       await updateRecord(record.id, {
