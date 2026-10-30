@@ -1,5 +1,44 @@
 # Changelog
 
+## [1.1.2] - 2026-10-30
+
+*19 Jumada al-Awwal 1448.*
+
+A packaging patch on 1.1.1. No application code changed, no behaviour changed, and no
+feature surface was touched: the published backend image for 1.1.1 could not start, and
+this release is the same tree with the two packages it needed declared.
+
+### The published image now starts
+
+- `decimal.js` and `moment` are declared in `server/package.json`. `liabilityDeduction`
+  imports `decimal.js` and `hawlTrackingService` imports `moment`, and neither was
+  declared there — a development tree resolved both from hoisted transitive copies
+  (`@prisma/client` depends on the first, `moment-hijri` on the second), and the
+  lockfile recorded both as development-only. The image build drops devDependencies
+  before the runtime stage (`npm prune --omit=dev`), so the production tree shipped
+  without them.
+- Every `1.1.1` and `1.1` backend container exited before its health check:
+
+  ```
+  Error: Cannot find module 'decimal.js'
+  Require stack:
+  - /app/server/dist/server/src/services/liabilityDeduction.js
+  - /app/server/dist/server/src/routes/zakat.js
+  - /app/server/dist/server/src/app.js
+  ```
+
+  The type build, the server test suite and the image build all pass without the
+  package. Nothing in CI started a container, so the fault was invisible until a user
+  pulled the tag.
+- `npm run check:deps` (new) fails when an import under `server/src` is undeclared or
+  declared only as a development dependency, and runs in CI on every server change.
+
+### Upgrading
+
+If you are running `1.1.1` or `1.1` and the backend restart-loops with the error above,
+pull `1.1.2` (or `latest`) and restart. No database migration is involved; the failure
+was at module load, before the application touched the database.
+
 ## [1.1.1] - 2026-10-29
 
 *18 Jumada al-Awwal 1448.*
