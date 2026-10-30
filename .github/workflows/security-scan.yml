@@ -43,7 +43,6 @@ jobs:
     name: Detect changed paths
     runs-on: ubuntu-latest
     outputs:
-      docker: ${{ steps.filter.outputs.docker }}
       code: ${{ steps.filter.outputs.code }}
       deps: ${{ steps.filter.outputs.deps }}
     steps:
@@ -59,11 +58,6 @@ jobs:
           CHANGED=$(git diff --name-only "$BASE" "$HEAD" || echo '')
           echo "Changed files:"
           echo "$CHANGED"
-          if echo "$CHANGED" | grep -qE '^(docker/|\.dockerignore|Dockerfile)'; then
-            echo "docker=true" >> $GITHUB_OUTPUT
-          else
-            echo "docker=false" >> $GITHUB_OUTPUT
-          fi
           if echo "$CHANGED" | grep -qE '\.(ts|js|tsx|jsx|py)$'; then
             echo "code=true" >> $GITHUB_OUTPUT
           else
@@ -475,7 +469,7 @@ jobs:
       always() &&
       (
         (github.event_name == 'workflow_dispatch' && (github.event.inputs.scan_type == 'container' || github.event.inputs.scan_type == 'full'))
-        || (github.event_name != 'workflow_dispatch' && needs.changes.outputs.docker == 'true')
+        || github.event_name != 'workflow_dispatch'
       )
     
     steps:
@@ -495,12 +489,22 @@ jobs:
 
       - name: Install Trivy
         run: |
-          sudo apt-get update
-          sudo apt-get install wget apt-transport-https gnupg lsb-release
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update
-          sudo apt-get install trivy
+          set -euo pipefail
+          # The apt route this replaces is dead: `apt-key add` was removed in
+          # Ubuntu 24.04, which is what ubuntu-latest now runs, so the job died
+          # in this step and Trivy never executed — the failure had nothing to do
+          # with the images. Download the release binary instead: same shape as
+          # the gitleaks install above, no third-party apt repo, no key gymnastics.
+          TRIVY_VERSION="$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+            https://github.com/aquasecurity/trivy/releases/latest | sed 's#.*/tag/v##')"
+          if [ -z "${TRIVY_VERSION}" ] || [ "${TRIVY_VERSION}" = "latest" ]; then
+            echo "::error::Could not resolve the Trivy version from the release redirect."
+            exit 1
+          fi
+          curl -sSfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
+            | tar -xz trivy
+          sudo mv trivy /usr/local/bin/
+          trivy --version
 
       - name: Scan backend image
         run: |
