@@ -122,6 +122,9 @@ dist.next/
 *.js
 !client/public/push-sw.js
 !client/public/config.js
+# The dependency check is plain Node with no build step, and it must run
+# before the server is compiled.
+!server/scripts/check-declared-deps.js
 *.js.map
 *.d.ts.map
 *.tsbuildinfo
