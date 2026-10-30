@@ -40,6 +40,12 @@ jobs:
     - name: Install server dependencies
       run: cd server && npm ci
 
+    # Fails when a runtime import is not a declared dependency. Such a package
+    # resolves from a hoisted transitive copy in development and is absent from
+    # the production image, where the container fails to start.
+    - name: Verify server imports are declared dependencies
+      run: cd server && npm run check:deps
+
     - name: Generate Prisma client
       run: cd server && npx prisma generate
 
