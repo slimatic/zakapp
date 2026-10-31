@@ -759,14 +759,35 @@ jobs:
             3. Apply security patches
             4. Re-run security scan to verify fixes
             `;
-            
-            github.rest.issues.create({
+
+            // One open issue per condition, not one per failing run: five identical
+            // issues were filed on 2026-10-29 for a single advisory. A repeat failure
+            // comments on the issue that already tracks it.
+            const { data: open } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: title,
-              body: body,
-              labels: ['security', 'critical', 'priority-high']
+              state: 'open',
+              labels: 'security,critical,priority-high',
+              per_page: 100
             });
+            const existing = open.find(i => !i.pull_request && i.title === title);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body: `Still failing in run ${context.runId} (${context.sha.slice(0, 7)}):\n${body}`
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['security', 'critical', 'priority-high']
+              });
+            }
 
   cleanup:
     name: Cleanup
