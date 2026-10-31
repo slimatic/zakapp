@@ -6,8 +6,6 @@ on:
       - main
     tags:
       - 'v*'
-  release:
-    types: [published]
 
 env:
   DOCKERHUB_USERNAME: slimatic
