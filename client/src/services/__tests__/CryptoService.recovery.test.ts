@@ -8,12 +8,8 @@ describe('CryptoService Recovery Flow', () => {
     const salt = 'test-salt-123';
 
     it('should encrypt with one key and recover with a temporary key', async () => {
-        // 1. Derive Old Key
-        const oldKey = await cryptoService.deriveKey(oldPassword, salt);
-        const oldJwk = await cryptoService.exportSessionKey(oldKey);
-
-        // 2. Set Session to OLD and Encrypt Data
-        await cryptoService.restoreSessionKey(oldJwk);
+        // 1. Derive the OLD key (this also makes it the active session key)
+        await cryptoService.deriveKey(oldPassword, salt);
 
         const originalText = 'Secret Gold';
         const res = await cryptoService.encrypt(originalText);
@@ -22,10 +18,8 @@ describe('CryptoService Recovery Flow', () => {
 
         expect(packed).toContain('ZK1:'); // Verify encryption format
 
-        // 3. Switch Session to NEW Key (Simulate Password Change/Login)
-        const newKey = await cryptoService.deriveKey(newPassword, salt);
-        const newJwk = await cryptoService.exportSessionKey(newKey);
-        await cryptoService.restoreSessionKey(newJwk);
+        // 3. Switch to the NEW key (simulate a password change / fresh login)
+        await cryptoService.deriveKey(newPassword, salt);
 
         // 4. Verify Standard Decryption Fails
         let failed = false;
@@ -61,5 +55,26 @@ describe('CryptoService Recovery Flow', () => {
             const recovered = await cryptoService.decryptWithKey(p.ciphertext, p.iv, tempOldKey);
             expect(recovered).toBe(originalText);
         }
+    });
+});
+
+/**
+ * #725 -- the master key must not be walkable off the page. These two assertions
+ * are the regression guard: re-making the key extractable fails the first, and
+ * breaking the database passphrase derivation fails the second.
+ */
+describe('master key custody', () => {
+    it('is non-extractable and cannot be exported as a JWK', async () => {
+        await cryptoService.deriveKey('custody-pw', 'custody-salt');
+        const key = (cryptoService as unknown as { masterKey: CryptoKey }).masterKey;
+        expect(key).toBeTruthy();
+        expect(key.extractable).toBe(false);
+        await expect(window.crypto.subtle.exportKey('jwk', key)).rejects.toThrow();
+    });
+
+    it('still yields the database passphrase, 32 bytes base64url unpadded', async () => {
+        await cryptoService.deriveKey('custody-pw', 'custody-salt');
+        const passphrase = await cryptoService.exportKeyString();
+        expect(passphrase).toMatch(/^[A-Za-z0-9_-]{43}$/);
     });
 });

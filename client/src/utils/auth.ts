@@ -18,7 +18,7 @@
 /**
  * Reads the auth JWT from session storage.
  *
- * Session shape (zakapp_session_v1): { user, jwk }. The access token is kept
+ * Session shape (zakapp_session_v1): { user }. The access token is kept
  * in memory by AuthContext, but for Service Worker / PushManager requests
  * (which run outside React) we need a synchronous read. We store a separate
  * lightweight mirror `zakapp_token` at login so this utility can return it

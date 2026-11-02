@@ -33,6 +33,14 @@ const logger = new Logger('CryptoService');
 export class CryptoService {
     private static instance: CryptoService;
     private masterKey: CryptoKey | null = null; // In-memory ONLY
+    /**
+     * The raw key bytes, base64url, used as the local database passphrase and
+     * as the input to the vault verifier. Derived alongside the AES key with
+     * the same PBKDF2 parameters, so it is byte-identical to what
+     * `exportKey("jwk").k` used to produce -- existing local databases keep
+     * opening. Cached in memory only; never written anywhere.
+     */
+    private dbKeyString: string | null = null;
 
     private constructor() { }
 
@@ -82,44 +90,54 @@ export class CryptoService {
             },
             keyMaterial,
             { name: "AES-GCM", length: 256 },
-            true, // Extractable (Required for Session Persistence)
+            // NOT extractable. An exportable master key can be lifted out of the
+            // page by any script on the origin (XSS, a compromised dependency, an
+            // extension) and used offline, with no password and no open tab. The
+            // key never needs to leave this object: the database passphrase below
+            // comes from deriveBits, not from exportKey.
+            false,
             ["encrypt", "decrypt"]
         );
+
+        // Same PBKDF2 parameters, same bytes. `deriveKey` above imports those
+        // bytes as an AES key; deriving 256 bits directly gives the identical
+        // 32 bytes, which is what `exportKey("jwk").k` used to hand back.
+        const rawBits = await window.crypto.subtle.deriveBits(
+            {
+                name: "PBKDF2",
+                salt: enc.encode(salt),
+                iterations: 600000,
+                hash: "SHA-256"
+            },
+            keyMaterial,
+            256
+        );
+        this.dbKeyString = this.toBase64Url(new Uint8Array(rawBits));
 
         logger.info("Master key derived successfully.");
 
     }
 
     /**
-     * Export the master key for session persistence
-     * (Warning: Stored in sessionStorage only)
+     * base64url, unpadded -- the encoding the JWK spec uses for `k`, so the
+     * value stays byte-identical to what this method returned before the key
+     * became non-extractable.
      */
-    async exportSessionKey(): Promise<JsonWebKey> {
-        if (!this.masterKey) throw new Error("No key to export");
-        return await window.crypto.subtle.exportKey("jwk", this.masterKey);
+    private toBase64Url(bytes: Uint8Array): string {
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return window.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
 
     /**
-     * Restore the master key from session storage
-     */
-    async restoreSessionKey(jwk: JsonWebKey): Promise<void> {
-        this.masterKey = await window.crypto.subtle.importKey(
-            "jwk",
-            jwk,
-            { name: "AES-GCM", length: 256 },
-            true,
-            ["encrypt", "decrypt"]
-        );
-    }
-
-    /**
-     * Export the raw key as a string for use as DB Password
+     * Export the raw key as a string for use as DB Password.
+     *
+     * Reads the value cached at derivation time. The master key itself is a
+     * non-extractable CryptoKey and cannot be exported -- that is the point.
      */
     async exportKeyString(): Promise<string> {
-        if (!this.masterKey) throw new Error("No key derived");
-        const jwk = await window.crypto.subtle.exportKey("jwk", this.masterKey);
-        // 'k' is the key component for octet sequence keys (AES)
-        return jwk.k || '';
+        if (!this.dbKeyString) throw new Error("No key derived");
+        return this.dbKeyString;
     }
 
     /**
@@ -127,6 +145,7 @@ export class CryptoService {
      */
     clearSession(): void {
         this.masterKey = null;
+        this.dbKeyString = null;
     }
 
     /**
