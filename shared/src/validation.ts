@@ -46,7 +46,7 @@ export const createReminderSchema = z.object({
    * Dynamic metadata field. Consumers must narrow the type before use.
    * Example: if (typeof metadata.key === 'string') { ... }
    */
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const updateReminderSchema = createReminderSchema.partial().extend({
