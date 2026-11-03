@@ -24,6 +24,9 @@ const mockCrypto = {
   subtle: {
     importKey: jest.fn(),
     deriveKey: jest.fn(),
+    // CryptoService derives the database passphrase with deriveBits (the AES key
+    // itself is non-extractable and cannot be exported), so the stub needs it.
+    deriveBits: jest.fn(),
     exportKey: jest.fn(),
     encrypt: jest.fn(),
     decrypt: jest.fn(),
@@ -46,6 +49,7 @@ describe('PaymentEncryptionService', () => {
     // Mock the deriveKey and encrypt/decrypt methods
     mockCrypto.subtle.importKey.mockResolvedValue('mock-key-material' as any);
     mockCrypto.subtle.deriveKey.mockResolvedValue('mock-derived-key' as any);
+    mockCrypto.subtle.deriveBits.mockResolvedValue(new Uint8Array(32).buffer as any);
     mockCrypto.subtle.exportKey.mockResolvedValue({ k: 'mock-jwk-key' } as any);
 
     // Mock encryption to return predictable output
