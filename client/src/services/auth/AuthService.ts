@@ -60,84 +60,23 @@ export const authService = {
     },
 
     /**
-     * Restore session from sessionStorage
+     * Restore session from sessionStorage.
+     *
+     * Always returns null, on purpose.
+     *
+     * The vault key is a non-extractable CryptoKey and is never written to
+     * storage, so after a reload there is no key to reopen the local database
+     * with. Returning the cached user object instead would put the UI in a
+     * logged-in state it cannot back with decryption -- a lie the user only
+     * discovers when the first query fails. The passphrase is required again,
+     * which is the cost of a key that cannot be walked off the page (#725).
+     *
+     * The previous implementation is deleted rather than left unreachable: it
+     * was the only reader of the persisted JWK, and a dead copy of it is an
+     * invitation to reconnect it.
      */
     async restoreSession(): Promise<User | null> {
-        try {
-            const storedSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
-            if (!storedSession) return null;
-
-            const { user, jwk } = JSON.parse(storedSession);
-
-            if (user && jwk) {
-                await cryptoService.restoreSessionKey(jwk);
-
-                // Initialize DB with the restored key
-                const keyString = await cryptoService.exportKeyString();
-                logger.info(`Session restored. Key generated (len=${keyString.length})`);
-
-                try {
-                    // Do NOT call closeDb() here - getDb() handles key changes internally
-                    await getDb(keyString);
-
-                    // Verify with Backend
-                    try {
-                        const verifyResult = await api.getCurrentUser();
-
-                        if (verifyResult.success && verifyResult.data?.user) {
-                            const freshUser = {
-                                ...user,
-                                ...verifyResult.data.user,
-                                // Ensure specific fields prioritize what we want (e.g. decrypted vs updated flags)
-                                // isAdmin, userType, isVerified come from API
-                                isAdmin: verifyResult.data.user.isAdmin ?? user.isAdmin,
-                                userType: verifyResult.data.user.userType ?? user.userType,
-                                isVerified: verifyResult.data.user.isVerified ?? user.isVerified,
-                            };
-
-                            // Persist fresh user
-                            sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user: freshUser, jwk }));
-                            return freshUser;
-
-                        } else if (verifyResult.message === 'API Unauthorized (Local Mode)') {
-                            // 401 suppressed
-                            logger.warn('Session invalid (401). clearing session.');
-                            sessionStorage.removeItem(SESSION_STORAGE_KEY);
-                            localStorage.removeItem('accessToken');
-                            localStorage.removeItem('refreshToken');
-                            return null;
-                        } else {
-                            // Offline fallback
-                            logger.warn('Could not verify session with backend, continuing in local mode');
-                            return user;
-                        }
-                    } catch (verifyError) {
-                        logger.warn('Verification call failed, assuming offline mode', verifyError);
-                        return user;
-                    }
-
-                } catch (dbError: any) {
-                    logger.error('DB Open Failed during restore', dbError);
-
-                    // Handle Password Mismatch (DB1) - Nuclear Option
-                    if (dbError?.code === 'DB1' || (dbError?.message && dbError.message.includes('different password'))) {
-                        logger.warn('Password mismatch detected (DB1). Nuking local DB to recover...');
-                        toast.loading('Resetting local database due to security update...', { duration: 3000 });
-                        await forceResetDatabase();
-                        await getDb(keyString);
-                        logger.info('DB Re-initialized after nuke.');
-                        return user;
-                    } else {
-                        throw new Error('Database Open Failed: ' + (dbError instanceof Error ? dbError.message : String(dbError)));
-                    }
-                }
-            }
-            return null;
-        } catch (error) {
-            logger.error('Session restore failed', error);
-            sessionStorage.removeItem(SESSION_STORAGE_KEY);
-            throw error;
-        }
+        return null;
     },
 
     /**
@@ -335,9 +274,11 @@ export const authService = {
             }
         };
 
-        // Persist Session
-        const jwk = await cryptoService.exportSessionKey();
-        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
+        // Persist the display profile only. The vault key is deliberately NOT
+        // written to storage: it is a non-extractable CryptoKey and cannot be
+        // exported, which is what stops an XSS or a hostile extension from
+        // walking off with it. A reload costs one passphrase re-entry (#725).
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user }));
 
         // Trigger Background ZK Migration
         this.runZeroKnowledgeMigration(encryptedDb);
@@ -464,9 +405,11 @@ export const authService = {
             isVerified: apiResult.user?.isVerified ?? false
         };
 
-        // Persist Session
-        const jwk = await cryptoService.exportSessionKey();
-        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
+        // Persist the display profile only. The vault key is deliberately NOT
+        // written to storage: it is a non-extractable CryptoKey and cannot be
+        // exported, which is what stops an XSS or a hostile extension from
+        // walking off with it. A reload costs one passphrase re-entry (#725).
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user }));
 
         return user;
     },

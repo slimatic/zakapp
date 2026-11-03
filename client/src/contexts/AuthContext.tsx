@@ -255,11 +255,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           user = decryptedUser;
         }
 
-        // Update session storage to persist across reloads
+        // Update the display profile in session storage. No key is stored, so
+        // there is nothing else to preserve here (#725).
         const currentSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
         if (currentSession) {
-          const { jwk } = JSON.parse(currentSession);
-          sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
+          sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user }));
         }
 
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
