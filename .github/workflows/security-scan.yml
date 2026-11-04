@@ -63,7 +63,7 @@ jobs:
           else
             echo "code=false" >> $GITHUB_OUTPUT
           fi
-          if echo "$CHANGED" | grep -qE '^(package\.json|package-lock\.json|yarn\.lock|server/package\.json|client/package\.json|shared/package\.json)'; then
+          if echo "$CHANGED" | grep -qE '(^|/)(package(-lock)?\.json|yarn\.lock)$'; then
             echo "deps=true" >> $GITHUB_OUTPUT
           else
             echo "deps=false" >> $GITHUB_OUTPUT
