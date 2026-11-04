@@ -39,7 +39,7 @@ const getSeedUserId = (): string => {
         const raw = sessionStorage.getItem('zakapp_session_v1');
         if (raw) {
             const parsed = JSON.parse(raw);
-            // Shape written by AuthService.login(): { user: {...}, jwk: {...} }
+            // Shape written by AuthService.login(): { user: {...} }
             const id = parsed?.user?.id ?? parsed?.state?.user?.id;
             if (id) return id;
         }
