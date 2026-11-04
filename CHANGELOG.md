@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.1.3] - 2026-11-04
+
+*24 Jumada al-Awwal 1448.*
+
+A security patch on 1.1.2. Nothing about how zakat is calculated changed; what changed is what the
+browser is allowed to keep.
+
+### The vault key can no longer be walked off the page
+
+- The key that opens the encrypted local database was derived as an *extractable* AES key, and the
+  login path wrote it into `sessionStorage` as a JWK. Any script running on the origin — an XSS, a
+  compromised dependency, a hostile extension — could read that value and decrypt the vault offline,
+  with no password and no open tab. The service has always claimed memory-only key handling; the
+  storage path contradicted it.
+- The key is now derived non-extractable and never leaves the cryptography service. The database
+  passphrase is produced with `deriveBits` under the same PBKDF2 parameters (SHA-256, 600,000
+  iterations, same salt), so it is byte-identical to what the export produced before: existing local
+  databases keep opening, and nothing needs re-encrypting or migrating.
+- The session-restore path is deleted rather than merely disabled. After a reload there is no key to
+  reopen the database with, so the app asks for the passphrase again instead of restoring a
+  logged-in shell it cannot back with decryption.
+
+**What this costs you:** a page reload or a new tab now means signing in again. That is the price of
+a key that cannot be lifted out of the page, and it is deliberate.
+
+### Unchanged
+
+- No server change, no database migration, no change to stored records or to any calculation. The
+  salt remains server-side and password changes still recover previously encrypted data.
+
 ## [1.1.2] - 2026-10-30
 
 *19 Jumada al-Awwal 1448.*
