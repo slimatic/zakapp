@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowPathIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { skipWaiting } from '../../serviceWorkerRegistration';
 
@@ -99,8 +100,17 @@ export const UpdateNotification: React.FC = () => {
           <h3 className="font-semibold mb-1">
             Update Available
           </h3>
-          <p className="text-sm text-muted-foreground mb-3">
+          <p className="text-sm text-muted-foreground mb-2">
             A new version of ZakApp is ready. Refresh to get the latest features and improvements.
+          </p>
+          <p className="text-sm mb-3">
+            <Link
+              to="/settings?tab=data"
+              className="underline underline-offset-2 hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring rounded"
+            >
+              Download a backup first
+            </Link>
+{' '}— your records stay on this device, but a copy costs nothing.
           </p>
 
           {/* Actions */}
