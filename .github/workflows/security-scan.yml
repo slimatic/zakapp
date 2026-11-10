@@ -17,9 +17,12 @@ on:
     branches: [ main, develop, 'feature/*', 'security/*' ]
   pull_request:
     branches: [ main, develop ]
-  # schedule:
-  #   # Run daily security scans at 2 AM UTC
-  #   - cron: '0 2 * * *'
+  schedule:
+    # Nightly. A scheduled workflow runs from the DEFAULT BRANCH's copy of this
+    # file, so this only takes effect once it is merged to main — and advisories
+    # are published independently of our commits, so a change-triggered scan can
+    # never see today's CVE in yesterday's lockfile.
+    - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       scan_type:
@@ -34,7 +37,7 @@ on:
           - container
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
   SCAN_RESULTS_PATH: 'security-reports'
 
 jobs:
@@ -138,6 +141,7 @@ jobs:
       always() &&
       (
         (github.event_name == 'workflow_dispatch' && (github.event.inputs.scan_type == 'dependency' || github.event.inputs.scan_type == 'full'))
+        || github.event_name == 'schedule'
         || (github.event_name != 'workflow_dispatch' && needs.changes.outputs.deps == 'true')
       )
     
@@ -165,6 +169,23 @@ jobs:
           cd server && npm ci --no-audit --no-fund
           cd ../client && npm ci --no-audit --no-fund --legacy-peer-deps
           cd ../shared && npm ci --no-audit --no-fund
+
+      - name: Fail when an audit produced no result
+        # npm audit's error output (ENOLOCK, ENOAUDIT, registry outage) is valid
+        # JSON with no `metadata` key. The analyzer counts that as zero
+        # vulnerabilities, so a broken audit used to read as a clean scan.
+        run: |
+          set -euo pipefail
+          for ws in server client shared; do
+            f="${{ env.SCAN_RESULTS_PATH }}/${ws}-audit.json"
+            node -e '
+              const fs = require("fs");
+              const f = process.argv[1];
+              if (!fs.existsSync(f)) { console.error(f + ": missing"); process.exit(1); }
+              const a = JSON.parse(fs.readFileSync(f, "utf8"));
+              if (!a.metadata) { console.error(f + ": no metadata (audit did not run)"); process.exit(1); }
+            ' "$f"
+          done
 
       - name: Run npm audit (Server)
         id: audit-server
@@ -304,6 +325,7 @@ jobs:
       always() &&
       (
         (github.event_name == 'workflow_dispatch' && (github.event.inputs.scan_type == 'code' || github.event.inputs.scan_type == 'full'))
+        || github.event_name == 'schedule'
         || (github.event_name != 'workflow_dispatch' && needs.changes.outputs.code == 'true')
       )
     
@@ -478,14 +500,14 @@ jobs:
 
       - name: Build Docker images
         run: |
-          # --target backend-production: without it, docker tags the FINAL stage.
-          # The dev stage was last previously, so the scan was scanning the dev
-          # image (devDeps included) — inflating vuln counts with build-only
-          # packages. Dockerfile reordered so backend-production is last AND
-          # --target is pinned here for belt-and-braces.
+          # Dockerfile.production, not Dockerfile.backend: the published Docker
+          # Hub images are built from docker/Dockerfile.production (docker-hub.yml),
+          # so scanning the other file scanned an image no user ever runs.
+          #
+          # --target: without it, docker tags the FINAL stage of the file.
           # --pull: re-resolve base image tags so scans see patched base libs.
-          docker build --pull --target backend-production -f docker/Dockerfile.backend -t zakapp-backend .
-          docker build --pull -f docker/Dockerfile.frontend -t zakapp-frontend .
+          docker build --pull --target backend-production -f docker/Dockerfile.production -t zakapp-backend .
+          docker build --pull --target frontend-production -f docker/Dockerfile.production -t zakapp-frontend .
 
       - name: Install Trivy
         run: |
@@ -799,5 +821,5 @@ jobs:
       - name: Clean up temporary files
         run: |
           echo "Security scan completed. Artifacts uploaded for review."
-          echo "No scheduled scan: the schedule trigger in this workflow is commented out,"
+          echo "Nightly scan: this run may be the scheduled one (02:00 UTC), which"
           echo "so scans run only on push, pull request, or manual dispatch."
