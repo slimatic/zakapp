@@ -1,5 +1,49 @@
 # Changelog
 
+## [Unreleased] — security hygiene
+
+Nothing about how zakat is calculated changed. This is maintenance: an application is
+only as safe as the runtime underneath it, and ours had stopped receiving patches.
+
+### The runtime was end-of-life
+
+- The published backend image ran on **Node 20**, whose final release was 2026-03-24.
+  An EOL runtime receives no security patches at all, so every future CVE in it is
+  permanent by construction. `docker/Dockerfile.production` — the file Docker Hub
+  actually builds from — now uses **Node 24 LTS** for every stage, and CI tests on 24.
+- This also closes a gap between two Dockerfiles: `docker/Dockerfile.backend` had already
+  been moved to 24, but the published image is built from `Dockerfile.production`, which
+  had not. The fix was in the tree and never in the artifact.
+
+### Dependencies with no upgrade path we controlled
+
+- **CouchDB 3.5.1 → 3.5.3**, a patch release carrying fixes for several published
+  vulnerabilities. In-place upgrade; existing databases and replication state are read as
+  they are, no migration step.
+
+### Containers can no longer gain privilege, and cannot fill the disk
+
+- Every service now runs with `no-new-privileges`, so a binary inside a container cannot
+  gain privilege through setuid. The backend entrypoint already dropped to the `node`
+  user via `setpriv`; this closes the other services' path instead of relying on that.
+- A `pids_limit` stops a fork bomb, and bounded json-file logs stop a single noisy
+  container from filling the host disk and taking the database down with it.
+
+### The container scan was scanning the wrong image
+
+- `security-scan.yml` built `docker/Dockerfile.backend`, but Docker Hub publishes
+  `docker/Dockerfile.production`. Trivy was therefore reporting on an image that never
+  ships. It now builds the same file, at the same targets, as the release.
+- Dependency and container scans also run **nightly**. Advisories are published on their
+  own schedule, so a scan that only fires when we change a lockfile cannot see today's
+  CVE in yesterday's dependency.
+
+### Unchanged
+
+- No database migration, no API change, no change to stored records, and no change to any
+  calculation. If you self-host, `docker compose pull && docker compose up -d` is the whole
+  upgrade. See `SECURITY.md` for the host patch cadence that this release assumes of you.
+
 ## [1.1.3] - 2026-11-04
 
 *24 Jumada al-Awwal 1448.*

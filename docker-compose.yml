@@ -7,6 +7,14 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "${FRONTEND_PORT:-3000}:80"
       - "${FRONTEND_PORT_SSL:-3443}:443"
@@ -35,6 +43,14 @@ services:
   frontend:
     image: slimatic/zakapp-frontend:latest
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     expose:
       - "80"
     environment:
@@ -58,6 +74,14 @@ services:
   backend:
     image: slimatic/zakapp-backend:latest
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     expose:
       - "3001"
     environment:
@@ -101,6 +125,14 @@ services:
   migrations:
     image: slimatic/zakapp-backend:latest
     restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     # The published image declares ENTRYPOINT ["/entrypoint.sh"], which would run
     # the full backend startup instead of just migrating. Run the dedicated
     # migrator instead.
@@ -123,8 +155,16 @@ services:
 
   # CouchDB for multi-device sync
   couchdb:
-    image: apache/couchdb:3.5.1
+    image: apache/couchdb:3.5.3
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     expose:
       - "5984"
     environment:

@@ -228,7 +228,7 @@ fi
 #
 # Runs as `node` when the entrypoint is root, so migrations and the server
 # itself do not hold uid 0. `setpriv` is used because it ships with util-linux
-# (already in node:20-slim) and execs directly — no TTY, no fork, no parent
+# (part of util-linux, present in the Debian slim base) and execs directly — no
 # process. PID 1 therefore receives SIGTERM from `docker stop` itself, instead
 # of a wrapper swallowing it and forcing a 10s SIGKILL.
 #

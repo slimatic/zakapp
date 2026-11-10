@@ -12,7 +12,10 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        # 20.x is still listed ONLY because branch protection requires a check
+        # named `test (20.x)`; removing it silently blocks every merge. 24.x is
+        # the runtime that ships. Drop 20.x once the protection rule is updated.
+        node-version: [20.x, 24.x]
 
     steps:
     - uses: actions/checkout@v7
