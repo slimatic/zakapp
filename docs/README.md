@@ -14,8 +14,11 @@ Five documents describe deployment. Pick by what you are trying to do:
 | Understand the production architecture | [DEPLOY.md](../DEPLOY.md) |
 | Full reference: env vars, backups, rollback | [deployment-guide.md](deployment-guide.md) |
 
-For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md) and
-[AGENTS.md](../AGENTS.md).
+For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md),
+[AGENTS.md](../AGENTS.md), and the [testing guide](testing.md).
+
+Historical records live in [release-notes/](release-notes/) — including the
+[v1.0 release-readiness audit](release-notes/v1.0-audit.md), kept as written.
 
 ## 🗂️ Documentation Structure
 
