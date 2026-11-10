@@ -153,7 +153,7 @@ Browsers require a [secure context](https://developer.mozilla.org/en-US/docs/Web
 4. **Test the issue** with our diagnostic tool:
    ```bash
    # Run headless browser test (from a checkout of this repository)
-   ./test-crypto.sh http://your-ip:3005
+   ./scripts/test-crypto.sh http://your-ip:3005
    ```
    The former in-browser page (`crypto-test.html`) was removed: it was served to
    every visitor of the deployed site, and its "Test Registration Flow" button
