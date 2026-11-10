@@ -1,6 +1,8 @@
 # Changelog
 
-## [Unreleased] — security hygiene
+## [1.1.5] — security hygiene
+
+*Date and Hijri line are set at the release cut.*
 
 Nothing about how zakat is calculated changed. This is maintenance: an application is
 only as safe as the runtime underneath it, and ours had stopped receiving patches.
