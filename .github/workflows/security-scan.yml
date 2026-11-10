@@ -17,9 +17,10 @@ on:
     branches: [ main, develop, 'feature/*', 'security/*' ]
   pull_request:
     branches: [ main, develop ]
-  # schedule:
-  #   # Run daily security scans at 2 AM UTC
-  #   - cron: '0 2 * * *'
+  schedule:
+    # Nightly. Advisories are published independently of our commits, so a
+    # change-triggered scan can never see today's CVE in yesterday's lockfile.
+    - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       scan_type:
@@ -34,7 +35,7 @@ on:
           - container
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
   SCAN_RESULTS_PATH: 'security-reports'
 
 jobs:
@@ -138,6 +139,7 @@ jobs:
       always() &&
       (
         (github.event_name == 'workflow_dispatch' && (github.event.inputs.scan_type == 'dependency' || github.event.inputs.scan_type == 'full'))
+        || github.event_name == 'schedule'
         || (github.event_name != 'workflow_dispatch' && needs.changes.outputs.deps == 'true')
       )
     
@@ -478,14 +480,16 @@ jobs:
 
       - name: Build Docker images
         run: |
-          # --target backend-production: without it, docker tags the FINAL stage.
-          # The dev stage was last previously, so the scan was scanning the dev
-          # image (devDeps included) — inflating vuln counts with build-only
-          # packages. Dockerfile reordered so backend-production is last AND
-          # --target is pinned here for belt-and-braces.
+          # Dockerfile.production, not Dockerfile.backend: the published Docker
+          # Hub images are built from docker/Dockerfile.production (see
+          # docker-hub.yml). Scanning a different file scanned a different image,
+          # so a base-image CVE could pass this gate and still ship. This is the
+          # same image, same targets, as the release build.
+          #
+          # --target: without it, docker tags the FINAL stage of the file.
           # --pull: re-resolve base image tags so scans see patched base libs.
-          docker build --pull --target backend-production -f docker/Dockerfile.backend -t zakapp-backend .
-          docker build --pull -f docker/Dockerfile.frontend -t zakapp-frontend .
+          docker build --pull --target backend-production -f docker/Dockerfile.production -t zakapp-backend .
+          docker build --pull --target frontend-production -f docker/Dockerfile.production -t zakapp-frontend .
 
       - name: Install Trivy
         run: |
@@ -530,8 +534,10 @@ jobs:
         run: |
           wget -O hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
           chmod +x hadolint
-          ./hadolint docker/Dockerfile.backend --format json > ${{ env.SCAN_RESULTS_PATH }}/hadolint-backend.json || true
-          ./hadolint docker/Dockerfile.frontend --format json > ${{ env.SCAN_RESULTS_PATH }}/hadolint-frontend.json || true
+          for f in docker/Dockerfile.production docker/Dockerfile.backend docker/Dockerfile.frontend; do
+            name="$(basename "$f" | tr '[:upper:]' '[:lower:]')"
+            ./hadolint "$f" --format json > "${{ env.SCAN_RESULTS_PATH }}/hadolint-${name}.json" || true
+          done
 
       - name: Analyze container scan results
         id: analyze-containers

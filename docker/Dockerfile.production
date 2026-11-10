@@ -1,7 +1,7 @@
 # Multi-stage production Dockerfile
 
 # Base stage for package definitions
-FROM node:20-slim AS base
+FROM node:24-slim AS base
 WORKDIR /app
 ARG GIT_COMMIT_HASH
 ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
@@ -18,7 +18,7 @@ COPY client/package*.json ./client/
 # Runs on the BUILDPLATFORM (e.g., amd64) to ensure fast Vite builds
 # even when targeting arm64.
 # ----------------------------------------
-FROM --platform=$BUILDPLATFORM node:20-slim AS client-builder
+FROM --platform=$BUILDPLATFORM node:24-slim AS client-builder
 WORKDIR /app
 # Re-declare ARG and ENV as they don't persist across stages automatically
 ARG GIT_COMMIT_HASH
@@ -49,7 +49,7 @@ RUN cd client && npm run build
 # Runs on the TARGETPLATFORM to ensure native modules (better-sqlite3)
 # are built for the correct architecture.
 # ----------------------------------------
-FROM node:20-slim AS server-builder
+FROM node:24-slim AS server-builder
 WORKDIR /app
 # Re-declare ARG and ENV as they don't persist across stages automatically
 ARG GIT_COMMIT_HASH
@@ -92,7 +92,8 @@ RUN cd server && npm run build
 # in server/package.json. Without that move this prune would break every migration,
 # silently and at container start.
 #
-# Measured in node:20-slim against the real server/package.json:
+# Measured against the real server/package.json (on node:20-slim, before the
+# runtime was moved to node:24-slim):
 #
 #     node_modules before 451 MB -> after 322 MB   (129 MB, 29%)
 #     pruned:   vitest, ts-node, eslint
@@ -130,7 +131,7 @@ CMD ["nginx", "-g", "daemon off;"]
 # ----------------------------------------
 # Production Stage - Backend (Node.js)
 # ----------------------------------------
-FROM node:20-slim AS backend-production
+FROM node:24-slim AS backend-production
 
 WORKDIR /app
 
@@ -186,7 +187,7 @@ RUN mkdir -p /app/server/prisma/data
 RUN chown -R node:node /app/server /app/shared
 
 # No privilege-drop helper is installed: `setpriv` ships with util-linux and is
-# already present in node:20-slim (verified in the built image). `su-exec` is an
+# part of util-linux, which the Debian slim base ships. `su-exec` is an
 # Alpine package and is NOT available in Debian — attempting to install it fails
 # the build outright.
 

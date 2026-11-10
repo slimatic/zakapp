@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-slim AS build
+FROM node:24-slim AS build
 
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 
@@ -50,7 +50,7 @@ WORKDIR /app/server
 RUN npm run build
 
 # Development stage (original)
-FROM node:20-slim AS development
+FROM node:24-slim AS development
 
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 
