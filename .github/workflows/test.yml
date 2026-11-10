@@ -11,15 +11,16 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      # fail-fast would cancel the 20.x leg when 24.x fails, and a cancelled
-      # required check is not a verdict. Both legs must always report.
+      # fail-fast would cancel the other leg when one fails, and a cancelled
+      # required check is not a verdict.
       fail-fast: false
       matrix:
-        # 20.x is still listed ONLY because branch protection on main and
-        # develop requires a check literally named `test (20.x)`; removing it
-        # silently blocks every merge. 24.x is the runtime that ships. Drop
-        # 20.x once the protection rule is updated.
-        node-version: [20.x, 24.x]
+        # Node 20's last release was 2026-03-24; it has received no security
+        # patches since. Everything ships on 24, so that is what we test.
+        # If this list ever changes, rename the required status check
+        # `test (24.x)` in branch protection FIRST — the check name is derived
+        # from the version string, and a renamed check blocks every merge.
+        node-version: [24.x]
 
     steps:
     - uses: actions/checkout@v7
