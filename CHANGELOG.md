@@ -26,10 +26,13 @@ only as safe as the runtime underneath it, and ours had stopped receiving patche
 ### Containers can no longer gain privilege, and cannot fill the disk
 
 - Every service now runs with `no-new-privileges`, so a binary inside a container cannot
-  gain privilege through setuid. The backend entrypoint already dropped to the `node`
-  user via `setpriv`; this closes the other services' path instead of relying on that.
-- A `pids_limit` stops a fork bomb, and bounded json-file logs stop a single noisy
-  container from filling the host disk and taking the database down with it.
+  gain privilege through setuid. Backend and CouchDB still *start* as root and drop to
+  their own user with `setpriv`; the flag means a compromised binary cannot climb back up
+  after that drop.
+- A `pids_limit` stops a fork bomb. Docker's own log output is capped at 10 MB × 3, and
+  Caddy's access log — which lives on the `caddy_data` volume and is therefore *not* covered
+  by docker's log driver — now rotates at 50 MB × 5. Previously that file was the one
+  unbounded sink in the stack.
 
 ### The container scan was scanning the wrong image
 

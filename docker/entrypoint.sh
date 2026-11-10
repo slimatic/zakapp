@@ -227,13 +227,18 @@ fi
 # Execute the main command.
 #
 # Runs as `node` when the entrypoint is root, so migrations and the server
-# itself do not hold uid 0. `setpriv` is used because it ships with util-linux
-# (part of util-linux, present in the Debian slim base) and execs directly — no
-# process. PID 1 therefore receives SIGTERM from `docker stop` itself, instead
-# of a wrapper swallowing it and forcing a 10s SIGKILL.
+# itself do not hold uid 0. `setpriv` ships with util-linux (present in the
+# Debian slim base) and execs directly, so `$@` replaces this shell.
 #
-# The `exec` form is preserved in both branches so nothing sits between Docker
-# and the Node server.
+# What that does NOT buy, despite what this comment used to claim: the image's
+# CMD is `npm start`, so the process setpriv execs is **npm**, not node. The
+# tree is `npm -> sh -c "node dist/server/src/app.js" -> node`, and `docker
+# stop` signals npm. A direct `node dist/server/src/app.js` CMD is the fix —
+# tracked separately, because changing CMD changes startup behaviour (the
+# entrypoint still runs migrations first) and deserves its own verification.
+#
+# The `exec` form is preserved in both branches so nothing extra sits between
+# Docker and whatever we start.
 if [ "$(id -u)" = "0" ] && command -v setpriv > /dev/null 2>&1; then
     exec setpriv --reuid=node --regid=node --init-groups "$@"
 else
