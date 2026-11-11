@@ -100,6 +100,22 @@ describe('backup is plaintext and key-independent', () => {
     expect(looksEncrypted(st.profileName)).toBe(false);
   });
 
+  it('keeps the user\'s nisab gram convention across a restore', () => {
+    // Both conventions are legitimate; which one a user follows moves their
+    // threshold by ~2.8%. A restore that drops the field silently applies the
+    // project default instead of the user's answer.
+    const restored = MigrationService.adaptUserSettings(
+      { ...plaintextBackup.settings, nisabStandard: 'aaoifi' },
+      'new-user'
+    );
+    expect(restored.nisabStandard).toBe('aaoifi');
+
+    // A file older than the field must not invent a value; the insert default
+    // applies ('tola'), which is what every pre-v8 user ran on.
+    const legacy = MigrationService.adaptUserSettings({ ...plaintextBackup.settings, nisabStandard: undefined }, 'new-user');
+    expect(legacy.nisabStandard).toBeUndefined();
+  });
+
   it('restores into a DIFFERENT account than it came from', () => {
     // "export on the old system, import on the new" - the userId must not leak
     // through, and must not be required to match.

@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.2.0] — payment tracking and data integrity
+
+*Date and Hijri line are set at the release cut.*
+
+### Payments
+
+- **Every payment since February 2026 was encrypted twice.** Recipients, notes and receipt
+  references rendered as "Encrypted recipient" and could not be read back; amounts were
+  unaffected. New writes are correct, and rows already written are repaired in place on
+  sign-in — no re-import needed.
+- **"Unassigned / imported" in the payments filter was disabled**, so payments whose hawl
+  record no longer exists could be counted but never listed.
+- A payments export refuses to write a file while any record is still unreadable, instead
+  of producing a backup that restores as ciphertext.
+
+### Data integrity
+
+- **Deleted records came back on the next device.** The sync pull dropped `_deleted`, so a
+  deletion was written as a live row and then re-published to the device that made it.
+- **A restore dropped the account's nisab gram convention** (tola 87.48 g / AAOIFI 85 g) and
+  silently applied the default, moving the threshold by ~2.8%.
+- **A restore lost any row beyond the free-tier limit even when that row already existed.**
+  Re-importing a file at the limit reported "0 imported"; a 30-row file against a 20-row
+  limit silently kept 20.
+
+### Admin and docs
+
+- The admin "mark unrecoverable" remediation endpoint could never run: it was mounted
+  without `authenticate`.
+- Developer onboarding, project-structure, architecture and security docs that describe a
+  directory layout and stack the repository has never had are archived; the docs index now
+  points at CONTRIBUTING, AGENTS, testing and SECURITY.
+- `openapi.yaml` declared MIT in an AGPL-3.0 repository.
+
 ## [1.1.5] — security hygiene
 
 *Date and Hijri line are set at the release cut.*

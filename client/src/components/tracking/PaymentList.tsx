@@ -34,6 +34,12 @@ import { PaymentDetailModal } from './PaymentDetailModal';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import { Decimal } from 'decimal.js';
 
+/**
+ * The payments page's filter value for payments that belong to no existing hawl
+ * record. It is a filter token, never a stored snapshotId.
+ */
+export const UNASSIGNED_SNAPSHOT = '__unassigned__';
+
 
 interface PaymentListProps {
   nisabRecordId?: string;
@@ -100,12 +106,6 @@ export const PaymentList: React.FC<PaymentListProps> = ({
   const resolvedRecordId = nisabRecordId ?? snapshotId;
   const { payments: allPayments, isLoading, error } = usePaymentRepository();
 
-  // Filter by snapshotId if provided
-  const payments = useMemo(() => {
-    if (!resolvedRecordId) return allPayments;
-    return allPayments.filter(p => p.snapshotId === resolvedRecordId);
-  }, [allPayments, resolvedRecordId]);
-
   // Fetch Nisab Year Records locally
   const { records: nisabRecordsData } = useNisabRecordRepository();
 
@@ -117,6 +117,18 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     });
     return map;
   }, [nisabRecordsData]);
+
+  // Filter by snapshotId if provided. `UNASSIGNED_SNAPSHOT` is the payments page's
+  // bucket for rows whose hawl record no longer exists (an import, a deleted
+  // year). Matching it against the literal string would show nothing, so it is
+  // answered as "not in any known record".
+  const payments = useMemo(() => {
+    if (!resolvedRecordId) return allPayments;
+    if (resolvedRecordId === UNASSIGNED_SNAPSHOT) {
+      return allPayments.filter(p => !nisabRecordMap.has(p.snapshotId));
+    }
+    return allPayments.filter(p => p.snapshotId === resolvedRecordId);
+  }, [allPayments, resolvedRecordId, nisabRecordMap]);
 
   // Helper to coerce possibly-missing or non-numeric amounts into a safe number
   const safeAmount = (p: PaymentRecord | any): number => {

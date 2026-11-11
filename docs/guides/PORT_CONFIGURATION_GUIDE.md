@@ -244,7 +244,7 @@ Use this checklist to verify your configuration:
 
 ## Additional Resources
 
-- [DEVELOPMENT_SETUP.md](../reports/DEVELOPMENT_SETUP.md) - Complete development setup guide
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Development setup and workflow
 - [deployment-guide.md](../deployment-guide.md) - Production deployment instructions
 - [client/.env.example](../../.env.example) - Frontend configuration template
 - [server/.env.example](../../.env.example) - Backend configuration template

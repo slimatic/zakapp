@@ -72,19 +72,19 @@ This directory contains specialized setup, configuration, and deployment guides 
 
 ### General Setup
 - **[Main README](../../README.md)** - Project overview and quick start
-- **[Development Setup](../reports/DEVELOPMENT_SETUP.md)** - Detailed development environment setup
-- **[Development Guide](../reports/DEVELOPMENT.md)** - Development workflow
+- **[Contributing](../../CONTRIBUTING.md)** - Development environment, workflow and PR rules
+- **[Repository map](../../AGENTS.md)** - Where each project lives and the commands CI runs
 - **[Docker Guide](../reports/DOCKER.md)** - Container deployment
 
 ### Operations
 - **[Database Management](../reports/DATABASE_MANAGEMENT.md)** - Database operations and troubleshooting
 - **[Deployment Guide](../deployment-guide.md)** - General deployment instructions
-- **[Security Guide](../security.md)** - Security best practices
+- **[Security Policy](../../SECURITY.md)** - The implemented security model
 
 ### Reference
 - **[Documentation Hub](../README.md)** - Complete documentation index
 - **[API Specification](../api/api-specification.md)** - REST API documentation
-- **[Project Structure](../project-structure.md)** - Repository organization
+- **[Architecture](../ARCHITECTURE.md)** - Client/server trust boundary and data flow
 
 ---
 

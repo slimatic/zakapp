@@ -29,7 +29,7 @@ import { findEncryptedLeaks } from '../../utils/parseDecimal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDataCleanup } from '../../hooks/useDataCleanup';
 import { useDb } from '../../db';
-import { getQuota } from '../../hooks/useRepositoryLimits';
+import { partitionByQuota } from '../../hooks/useRepositoryLimits';
 import { resolveVaultSalt } from '../../services/VaultRekey';
 import { Modal } from '../ui/Modal';
 
@@ -235,20 +235,17 @@ export const UnifiedImportExport: React.FC = () => {
                 if (rawData.assets && Array.isArray(rawData.assets)) {
                     const cleanAssets = MigrationService.adaptAssets(rawData.assets, targetUserId);
 
-                    // `addAsset` refuses per row once the limit is reached, so a
-                    // 25 asset file against a 20 asset limit imported 20 and reported
-                    // 5 errors. Take what fits and name what did not, rather than
-                    // letting the row-level refusal look like a failure.
-                    const quota = db
-                        ? await getQuota('assets', db.assets, user, targetUserId)
-                        : { max: undefined, used: 0, remaining: Infinity };
-                    const accepted = quota.remaining === Infinity
-                        ? cleanAssets
-                        : cleanAssets.slice(0, quota.remaining);
-                    if (accepted.length < cleanAssets.length) {
+                    // Rows already stored are updates and need no slot; only new
+                    // ids consume the allowance. Taking `incoming.slice(0, remaining)`
+                    // dropped new rows and refused no-op re-imports at the limit.
+                    const partition = db
+                        ? await partitionByQuota('assets', db.assets, user, targetUserId, cleanAssets)
+                        : { accepted: cleanAssets, skipped: 0, max: undefined, used: 0 };
+                    const accepted = partition.accepted;
+                    if (partition.skipped > 0) {
                         skipped.push(
-                            `${cleanAssets.length - accepted.length} assets — your limit is ${quota.max} ` +
-                            `and you already hold ${quota.used}. Remove some, then import this file again.`
+                            `${partition.skipped} assets — your limit is ${partition.max} ` +
+                            `and you already hold ${partition.used}. Remove some, then import this file again.`
                         );
                     }
 
