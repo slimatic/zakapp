@@ -20,10 +20,9 @@ import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
 import { switchMap } from 'rxjs/operators';
 import { cryptoService } from '../services/CryptoService';
-import { PaymentEncryptionService } from '../services/PaymentEncryptionService';
 // Payment Record matches the shared type but lives locally in RxDB
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
-import { getQuota, limitMessage } from './useRepositoryLimits';
+import { getQuota, limitMessage, partitionByQuota } from './useRepositoryLimits';
 
 /**
  * Hook for managing Payment Records in the local RxDB database.
@@ -124,10 +123,10 @@ export function usePaymentRepository(options: { snapshotId?: string } = {}) {
             userId: user.id // Inject authenticated user ID
         };
 
-        // Encrypt sensitive fields BEFORE inserting into RxDB
-        const encryptedPayment = await PaymentEncryptionService.encryptPaymentData(newPayment);
-
-        return db.payment_records.insert(encryptedPayment);
+        // Encryption is owned by the RxDB zero-knowledge plugin (preInsert).
+        // Encrypting here as well wrapped every value twice, and the read path
+        // only unwraps one layer.
+        return db.payment_records.insert(newPayment);
     };
 
     const removePayment = async (id: string) => {
@@ -162,10 +161,9 @@ export function usePaymentRepository(options: { snapshotId?: string } = {}) {
         if (!db) throw new Error('Database not initialized');
         if (!user || !user.id) throw new Error('User not authenticated');
 
-        const quota = await getQuota('payments', db.payment_records, user, user.id);
-        const [accepted, skipped] = quota.remaining === Infinity
-            ? [paymentsToAdd, []]
-            : [paymentsToAdd.slice(0, quota.remaining), paymentsToAdd.slice(quota.remaining)];
+        const { accepted, skipped } = await partitionByQuota(
+            'payments', db.payment_records, user, user.id, paymentsToAdd
+        );
 
         const refinedPayments = accepted.map(p => ({
             ...p,
@@ -177,12 +175,10 @@ export function usePaymentRepository(options: { snapshotId?: string } = {}) {
             userId: p.userId || 'local-user'
         }));
 
-        // Encrypt all payments before bulk insert
-        const encryptedPayments = await Promise.all(
-            refinedPayments.map(p => PaymentEncryptionService.encryptPaymentData(p))
-        );
-
-        const result = await db.payment_records.bulkUpsert(encryptedPayments);
+        // No pre-encryption here: the RxDB zero-knowledge plugin encrypts each
+        // field once on insert. A second pass made the value unreadable after a
+        // single decrypt (see zeroKnowledgePlugin.test.ts).
+        const result = await db.payment_records.bulkUpsert(refinedPayments);
         if (result.error && result.error.length > 0) {
             console.error('Payment Import Errors:', result.error);
             const firstError = result.error[0];
@@ -190,7 +186,7 @@ export function usePaymentRepository(options: { snapshotId?: string } = {}) {
             const errorMsg = (firstError as any).message || JSON.stringify(firstError);
             throw new Error(`${result.error.length} payments failed validation: ${errorMsg}`);
         }
-        return { saved: accepted.length, skipped: skipped.length, result };
+        return { saved: accepted.length, skipped, result };
     };
 
     return {

@@ -23,6 +23,7 @@ import { Logger } from '../utils/logger';
 import { getDb } from '../db';
 import { cryptoService } from '../services/CryptoService';
 import { reencryptVault, resolveVaultSalt } from '../services/VaultRekey';
+import { repairDoubleEncryptedFields } from '../services/VaultRepair';
 import { DEFAULT_NISAB_STANDARD } from '../core/calculations/nisab';
 
 
@@ -145,6 +146,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     initSession();
   }, []);
+
+  // Rows written before the double-encryption fix keep their outer layer and
+  // render as "Encrypted recipient". Repair them once the vault key is in hand.
+  useEffect(() => {
+    if (!state.isAuthenticated || !state.user?.id) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { repaired } = await repairDoubleEncryptedFields({ userId: state.user!.id });
+        if (!cancelled && repaired > 0) {
+          toast.success(
+            `Repaired ${repaired} record${repaired === 1 ? '' : 's'} whose details were showing as encrypted.`,
+            { duration: 8000 }
+          );
+        }
+      } catch (error) {
+        logger.warn('Double-wrap repair skipped', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.isAuthenticated, state.user?.id]);
 
 
   const login = async (identifier: string, password: string): Promise<boolean> => {

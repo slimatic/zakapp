@@ -41,6 +41,35 @@ import { Logger } from '../utils/logger';
 
 const logger = new Logger('SyncService');
 
+/**
+ * Pull-side modifier: decrypt a CouchDB document and keep its tombstone flag.
+ *
+ * `couchDBDocToRxDocData` sets `_deleted = !!doc._deleted`, so a modifier that
+ * returns the body WITHOUT the flag turns every remote deletion into a live
+ * document. Deleted rows then come back on the next device, and a later push
+ * re-publishes them to the device that deleted them. A tombstone carries no
+ * useful content, so it is passed through undecrypted.
+ */
+export const decryptPulledDocument = async (doc: any, collectionName: string = 'collection') => {
+    if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
+    if (doc._deleted) return { _id: doc._id, _rev: doc._rev, _deleted: true };
+
+    if (doc.encrypted && doc.iv && doc.tag) {
+        try {
+            const decrypted = await cryptoService.decryptObject({
+                ciphertext: doc.encrypted,
+                iv: doc.iv,
+                tag: doc.tag
+            });
+            return { _id: doc._id, _rev: doc._rev, ...decrypted };
+        } catch (err) {
+            logger.error(`Decryption failed for ${collectionName}:`, err);
+            throw err;
+        }
+    }
+    return doc;
+};
+
 
 // Collections to sync - only core user data that needs multi-device sync
 //
@@ -326,24 +355,7 @@ export class SyncService {
                 autoStart: true,
                 pull: {
                     batchSize: 50,
-                    modifier: async (doc: any) => {
-                        if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
-                        if (doc.encrypted && doc.iv && doc.tag) {
-                            try {
-                                const decrypted = await cryptoService.decryptObject({
-                                    ciphertext: doc.encrypted,
-                                    iv: doc.iv,
-                                    tag: doc.tag
-                                });
-                                return { _id: doc._id, _rev: doc._rev, ...decrypted };
-                            } catch (err) {
-                                logger.error(`Decryption failed for ${collectionName}:`, err);
-
-                                throw err;
-                            }
-                        }
-                        return doc;
-                    }
+                    modifier: (doc: any) => decryptPulledDocument(doc, collectionName)
                 },
                 push: {
                     batchSize: 50,

@@ -37,7 +37,7 @@ import { cryptoService } from './CryptoService';
 import { logger } from '../utils/logger';
 
 /** Collections that carry encrypted fields. Mirrors SYNC_COLLECTIONS. */
-const COLLECTIONS = [
+export const COLLECTIONS = [
     'assets',
     'asset_amount_events',
     'liabilities',
@@ -220,7 +220,7 @@ export class VaultBlockedError extends Error {
  * Encrypted field paths for a collection, read from its own schema.
  * Returns [] when the collection is unknown or declares none.
  */
-const getEncryptedPaths = (collection: any): string[] => {
+export const getEncryptedPaths = (collection: any): string[] => {
     const props = collection?.schema?.jsonSchema?.properties;
     if (!props) return [];
     return Object.keys(props).filter((key) => (props[key] as any)?.encrypted);

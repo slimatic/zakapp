@@ -21,7 +21,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { switchMap } from 'rxjs/operators';
 import { cryptoService } from '../services/CryptoService';
 import { Liability } from '../types';
-import { getQuota, limitMessage } from './useRepositoryLimits';
+import { getQuota, limitMessage, partitionByQuota } from './useRepositoryLimits';
 
 export function useLiabilityRepository() {
     const db = useDb();
@@ -122,10 +122,9 @@ export function useLiabilityRepository() {
         if (!db) throw new Error('Database not initialized');
         if (!user || !user.id) throw new Error('User not authenticated');
 
-        const quota = await getQuota('liabilities', db.liabilities, user, user.id);
-        const [accepted, skipped] = quota.remaining === Infinity
-            ? [liabilitiesToAdd, []]
-            : [liabilitiesToAdd.slice(0, quota.remaining), liabilitiesToAdd.slice(quota.remaining)];
+        const { accepted, skipped } = await partitionByQuota(
+            'liabilities', db.liabilities, user, user.id, liabilitiesToAdd
+        );
 
         const refinedLiabilities = accepted.map(l => ({
             ...l,
@@ -142,7 +141,7 @@ export function useLiabilityRepository() {
             console.error('Liability Import Errors:', result.error);
             throw new Error(`${result.error.length} liabilities failed validation`);
         }
-        return { saved: accepted.length, skipped: skipped.length, result };
+        return { saved: accepted.length, skipped, result };
     };
 
     const removeLiability = async (id: string) => {

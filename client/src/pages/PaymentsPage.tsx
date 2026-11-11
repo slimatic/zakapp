@@ -22,7 +22,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PaymentList } from '../components/tracking/PaymentList';
+import { PaymentList, UNASSIGNED_SNAPSHOT } from '../components/tracking/PaymentList';
 import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
@@ -125,7 +125,7 @@ export const PaymentsPage: React.FC = () => {
               );
             })}
             {allPayments.some((p) => !nisabRecords.find((r) => r.id === p.snapshotId)) && (
-              <option value="legacy-import" disabled>
+              <option value={UNASSIGNED_SNAPSHOT}>
                 -- Unassigned / imported ({allPayments.filter((p) => !nisabRecords.find((r) => r.id === p.snapshotId)).length}) --
               </option>
             )}
