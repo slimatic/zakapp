@@ -19,12 +19,14 @@ import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
 import { asyncHandler } from '../../middleware/ErrorHandler';
 import { emailService } from '../../services/EmailService';
 import { AuthService } from '../../services/AuthService';
+import { passwordResetRateLimit } from '../../middleware/RateLimitMiddleware';
 import {
   logger,
 } from './_shared';
 
 export function registerPasswordRoutes(router: express.Router): void {
 router.post('/reset-password',
+  passwordResetRateLimit,
   asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
     const { email } = req.body;
 
