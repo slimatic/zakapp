@@ -1,6 +1,6 @@
 {
   "name": "@zakapp/cli",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "CLI wizard for Zakapp",
   "main": "dist/index.js",
   "bin": {
