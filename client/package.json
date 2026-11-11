@@ -54,7 +54,7 @@
     "typescript": "^5.0.0",
     "uuid": "^14.0.0",
     "web-vitals": "^6.2.3",
-    "zod": "^3.22.4"
+    "zod": "^4.6.7"
   },
   "scripts": {
     "dev": "vite",
@@ -154,7 +154,8 @@
     "rxdb": {
       "ws": "^8.21.3",
       "ajv": "^8.20.0"
-    }
+    },
+    "postcss-selector-parser": "^6.1.5"
   },
   "license": "AGPL-3.0-or-later"
 }
