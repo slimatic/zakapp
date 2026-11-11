@@ -1,23 +1,12 @@
 // Early test setup: ensure all Prisma clients use the TEST_DATABASE_URL when provided
 // Force the correct absolute path where migration ran
-import path from 'path';
+import { resolveTestDbUrl } from './dbUrl';
 
-// Resolve database path relative to the server directory (assumed to be CWD)
-// Prisma CLI resolves relative paths in DATABASE_URL relative to the schema file location (prisma/schema.prisma)
-// So 'file:./test/test.db' in globalSetup becomes 'server/prisma/test/test.db'
-const dbPath = path.resolve(process.cwd(), 'prisma/test/test.db');
-process.env.DATABASE_URL = `file:${dbPath}`;
-process.env.TEST_DATABASE_URL = process.env.DATABASE_URL;
-
-/*
-if (process.env.TEST_DATABASE_URL) {
-  process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
-} else if (!process.env.DATABASE_URL) {
-  // Default to the correct absolute path where migration ran
-  process.env.DATABASE_URL = 'file:/home/agentx/github-repos/zakapp/server/prisma/test/test.db';
-  process.env.TEST_DATABASE_URL = process.env.DATABASE_URL;
-}
-*/
+// Same rule globalSetup used to migrate: a relative file: URL is resolved
+// against the cwd, then handed to every client as an absolute path.
+const dbUrl = resolveTestDbUrl();
+process.env.DATABASE_URL = dbUrl;
+process.env.TEST_DATABASE_URL = dbUrl;
 
 // Ensure ENCRYPTION_KEY has a default during tests to avoid runtime errors
 process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'test-encryption-key-32-chars-!!!';

@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import { PrismaClient } from '@prisma/client';
 import { sqliteAdapter } from '../src/config/prismaAdapter';
+import { resolveTestDbUrl } from './dbUrl';
 import fs from 'fs';
 import path from 'path';
 
@@ -25,7 +26,14 @@ export default async function globalSetup() {
   console.log('[globalSetup] Preparing test database from the migration history...');
 
   const explicitTestDb = process.env.TEST_DATABASE_URL;
-  const testDb = explicitTestDb || process.env.DATABASE_URL || 'file:./test/test.db';
+  const configuredDb = explicitTestDb || process.env.DATABASE_URL || 'file:./test/test.db';
+
+  // The Prisma CLI resolves a RELATIVE file: URL against the schema directory
+  // (server/prisma/), while the driver adapter opens the path against the
+  // process cwd (server/). Passing the CLI a relative URL therefore migrates
+  // one file and the tests open another — which fails only on a machine with no
+  // pre-existing test database. Hand both an absolute path instead.
+  const testDb = resolveTestDbUrl();
 
   const env = { ...process.env, DATABASE_URL: testDb, TEST_DATABASE_URL: testDb };
 
@@ -38,10 +46,8 @@ export default async function globalSetup() {
   //  - only for a `file:` URL. A networked database is never deleted here.
   if (explicitTestDb && explicitTestDb.startsWith('file:')) {
     const rel = explicitTestDb.replace('file:', '').split('?')[0];
-    // Prisma resolves a relative file: URL against the SCHEMA directory
-    // (`server/prisma/`), not the process cwd. Resolving against cwd here would
-    // delete nothing and quietly leave the stale record in place.
-    const dbFile = path.isAbsolute(rel) ? rel : path.resolve(__dirname, '../prisma', rel);
+    // Same base the driver adapter opens: the process cwd.
+    const dbFile = path.isAbsolute(rel) ? rel : path.resolve(process.cwd(), rel);
 
     for (const suffix of ['', '-wal', '-shm']) {
       const f = `${dbFile}${suffix}`;
