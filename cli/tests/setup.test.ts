@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { setupCommand } from '../src/commands/setup';
+import { setupCommand } from '../src/commands/setup.js';
 
 describe('Setup Command', () => {
   it('should be defined', () => {

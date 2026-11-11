@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { setupCommand } from './commands/setup';
+import { setupCommand } from './commands/setup.js';
 
 const program = new Command();
 

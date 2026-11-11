@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import crypto from 'crypto';
-import { loadConfig, saveConfig, DEFAULT_CONFIG, UserConfig } from '../config';
+import { loadConfig, saveConfig, DEFAULT_CONFIG, UserConfig } from '../config.js';
 import { ZAKAT_METHODS } from '@zakapp/shared';
 
 export const setupCommand = new Command('setup')
