@@ -34,6 +34,7 @@ import { PaymentDetailModal } from './PaymentDetailModal';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import { Decimal } from 'decimal.js';
 import { groupPaymentsByRecipient } from '../../utils/paymentGrouping';
+import { paymentAmountInBase } from '../../utils/formatters';
 
 /**
  * The payments page's filter value for payments that belong to no existing hawl
@@ -247,12 +248,12 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
   // Calculate totals
   const totalAmount = sortedAndFilteredPayments.reduce((sum: Decimal, payment: PaymentRecord) => {
-    return sum.plus(new Decimal(payment.amount || 0));
+    return sum.plus(new Decimal(paymentAmountInBase(payment)));
   }, new Decimal(0)).toNumber();
 
   const categoryTotals = sortedAndFilteredPayments.reduce((acc: Record<string, number>, payment: PaymentRecord) => {
     const cat = payment.recipientCategory || 'unknown';
-    const amount = new Decimal(payment.amount || 0);
+    const amount = new Decimal(paymentAmountInBase(payment));
     acc[cat] = new Decimal(acc[cat] || 0).plus(amount).toNumber();
     return acc;
   }, {});

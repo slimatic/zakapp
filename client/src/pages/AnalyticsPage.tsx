@@ -29,7 +29,7 @@ import { ZakatObligationsChart } from '../components/dashboard/ZakatObligationsC
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, paymentAmountInBase } from '../utils/formatters';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getAssetZakatableValue } from '../core/calculations/zakat';
@@ -104,7 +104,7 @@ export const AnalyticsPage: React.FC = () => {
 
   // Calculate total Zakat paid from actual payment records (filtered by timeframe)
   const totalZakatPaid = filteredPayments.reduce((sum: number, payment: any) => {
-    return sum + (Number(payment.amount) || 0);
+    return sum + paymentAmountInBase(payment);
   }, 0) || 0;
 
     const complianceRate = totalZakatDue > 0 ? (totalZakatPaid / totalZakatDue) * 100 : 0;

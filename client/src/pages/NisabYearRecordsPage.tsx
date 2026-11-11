@@ -17,6 +17,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
+import { paymentAmountInBase } from '../utils/formatters';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
@@ -151,7 +152,7 @@ export const NisabYearRecordsPage: React.FC = () => {
 
 
   // Calculate totals for active record
-  const totalPaid = recordPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const totalPaid = recordPayments.reduce((sum, p) => sum + paymentAmountInBase(p), 0);
   const totalObligation = Number(activeRecord?.zakatAmount || 0);
   const remainingBalance = Math.max(0, totalObligation - totalPaid);
   const isFullyPaid = totalObligation > 0 && remainingBalance === 0;

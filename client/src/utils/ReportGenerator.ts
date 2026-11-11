@@ -21,7 +21,7 @@ import { PDF_THEME, TABLE_STYLES, hex } from './pdfTheme';
 import autoTable from 'jspdf-autotable';
 import { NisabYearRecord } from '../types/nisabYearRecord';
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
-import { formatCurrency as canonicalCurrency } from './formatters';
+import { formatCurrency as canonicalCurrency, paymentAmountInBase } from './formatters';
 // import { formatCurrency } from './formatters'; // Avoid circular dependency if simple
 
 // Simple local formatter to avoid complex imports if needed, or import standard one
@@ -226,12 +226,12 @@ export class ReportGenerator {
             new Date(p.paymentDate).toLocaleDateString(),
             p.recipientName || 'Unspecified',
             p.recipientCategory || 'General',
-            formatCurrency(Number(p.amount), this.currency),
+            formatCurrency(paymentAmountInBase(p), this.currency),
             p.notes || '-'
         ]);
 
         // Calculate Total
-        const total = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+        const total = payments.reduce((sum, p) => sum + paymentAmountInBase(p), 0);
         tableData.push(['', '', 'TOTAL', formatCurrency(total, this.currency), '']);
         autoTable(doc, {
             startY: 40,

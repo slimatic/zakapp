@@ -26,6 +26,7 @@ import {
     Tooltip,
     Legend
 } from 'recharts';
+import { paymentAmountInBase } from '../../utils/formatters';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { CHART_COLORS } from '../../utils/chartPalette';
 
@@ -57,7 +58,7 @@ export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> =
     const data = React.useMemo(() => {
         const grouped = payments.reduce((acc, payment) => {
             const category = payment.recipientCategory || 'other';
-            acc[category] = (acc[category] || 0) + (Number(payment.amount) || 0);
+            acc[category] = (acc[category] || 0) + paymentAmountInBase(payment);
             return acc;
         }, {} as Record<string, number>);
 

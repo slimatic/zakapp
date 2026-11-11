@@ -18,6 +18,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { paymentAmountInBase } from '../../utils/formatters';
 import type { Asset, ZakatPayment } from '../../types';
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
 import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
@@ -60,7 +61,7 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
     const owed = activeNisabRecord && typeof activeNisabRecord.zakatAmount === 'number'
       ? activeNisabRecord.zakatAmount
       : totalAssets * nisabRate;
-    const paid = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    const paid = payments.reduce((sum, payment) => sum + paymentAmountInBase(payment), 0);
     
     return {
       owed,
