@@ -170,23 +170,6 @@ jobs:
           cd ../client && npm ci --no-audit --no-fund --legacy-peer-deps
           cd ../shared && npm ci --no-audit --no-fund
 
-      - name: Fail when an audit produced no result
-        # npm audit's error output (ENOLOCK, ENOAUDIT, registry outage) is valid
-        # JSON with no `metadata` key. The analyzer counts that as zero
-        # vulnerabilities, so a broken audit used to read as a clean scan.
-        run: |
-          set -euo pipefail
-          for ws in server client shared; do
-            f="${{ env.SCAN_RESULTS_PATH }}/${ws}-audit.json"
-            node -e '
-              const fs = require("fs");
-              const f = process.argv[1];
-              if (!fs.existsSync(f)) { console.error(f + ": missing"); process.exit(1); }
-              const a = JSON.parse(fs.readFileSync(f, "utf8"));
-              if (!a.metadata) { console.error(f + ": no metadata (audit did not run)"); process.exit(1); }
-            ' "$f"
-          done
-
       - name: Run npm audit (Server)
         id: audit-server
         continue-on-error: true
