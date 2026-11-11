@@ -1,8 +1,8 @@
 # Changelog
 
-## [1.2.0] — payment tracking and data integrity
+## [1.2.0] - 2026-11-11
 
-*Date and Hijri line are set at the release cut.*
+*1 Jumada al-Akhirah 1448.*
 
 ### Payments
 
