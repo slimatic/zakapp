@@ -299,6 +299,11 @@ export class MigrationService {
             // dates of a record the user had deliberately set.
             hijriAdjustment: Number.isFinite(Number(settings.hijriAdjustment)) ? Number(settings.hijriAdjustment) : 0,
             preferredMethodology: settings.preferredMethodology || 'standard',
+            // A stored preference, not a derived value. Dropping it on restore
+            // silently switches the user's nisab convention (87.48 g vs 85 g),
+            // which moves when zakat becomes due. `updateSettings` falls back to
+            // the default only when the file genuinely predates the field.
+            nisabStandard: settings.nisabStandard,
             baseCurrency: settings.baseCurrency || 'USD',
             language: settings.language || 'en',
             theme: settings.theme || 'system',

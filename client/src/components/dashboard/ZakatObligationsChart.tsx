@@ -28,6 +28,7 @@ import {
     Legend,
     ResponsiveContainer
 } from 'recharts';
+import { paymentAmountInBase } from '../../utils/formatters';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { NisabYearRecord } from '../../types/nisabYearRecord';
 import { CHART_COLORS, CHART_AXIS_COLOR, CHART_GRID_COLOR } from '../../utils/chartPalette';
@@ -73,7 +74,7 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
             // obligation.
             const paidForYear = payments
                 .filter(p => p.snapshotId === recordId)
-                .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                .reduce((sum, p) => sum + paymentAmountInBase(p), 0);
 
             const due = typeof record.zakatAmount === 'number' ? record.zakatAmount : parseFloat(record.zakatAmount as string || '0');
 

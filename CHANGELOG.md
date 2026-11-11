@@ -1,5 +1,110 @@
 # Changelog
 
+## [1.2.0] - 2026-11-11
+
+*1 Jumada al-Akhirah 1448.*
+
+### Payments
+
+- **Every payment since February 2026 was encrypted twice.** Recipients, notes and receipt
+  references rendered as "Encrypted recipient" and could not be read back; amounts were
+  unaffected. New writes are correct, and rows already written are repaired in place on
+  sign-in — no re-import needed.
+- **"Unassigned / imported" in the payments filter was disabled**, so payments whose hawl
+  record no longer exists could be counted but never listed.
+- A payments export refuses to write a file while any record is still unreadable, instead
+  of producing a backup that restores as ciphertext.
+- **Payment totals apply the recorded exchange rate.** Every list, annual record, analytics
+  figure, chart and PDF summed face values, so a payment of 1,000,000 IDR counted as
+  1,000,000 USD; totals now match the server's own `amount × exchangeRate`.
+
+### Data integrity
+
+- **Deleted records came back on the next device.** The sync pull dropped `_deleted`, so a
+  deletion was written as a live row and then re-published to the device that made it.
+- **A restore dropped the account's nisab gram convention** (tola 87.48 g / AAOIFI 85 g) and
+  silently applied the default, moving the threshold by ~2.8%.
+- **A restore lost any row beyond the free-tier limit even when that row already existed.**
+  Re-importing a file at the limit reported "0 imported"; a 30-row file against a 20-row
+  limit silently kept 20.
+
+### Security
+
+- **Login, registration and password reset shared one rate-limit counter per IP.** Failed
+  logins could lock registration, and reset mail had no limit at all; each route now has
+  its own budget. Proxied deployments can set `TRUST_PROXY` so limits see client addresses
+  instead of one shared proxy address.
+
+### Admin and docs
+
+- The admin "mark unrecoverable" remediation endpoint could never run: it was mounted
+  without `authenticate`.
+- Developer onboarding, project-structure, architecture and security docs that describe a
+  directory layout and stack the repository has never had are archived; the docs index now
+  points at CONTRIBUTING, AGENTS, testing and SECURITY.
+- `openapi.yaml` declared MIT in an AGPL-3.0 repository.
+
+### Tracking and reporting
+
+- **Payments now total per recipient** — count, amount and last date, following the
+  year filter and the search box. Names are matched case- and space-insensitively.
+- **A per-payment receipt PDF is reachable** from the payment card menu (generator and
+  tests already existed; nothing called them). Receipt and annual report now print the
+  recipient *category* where they used to print its type.
+- **The dashboard's "above nisab" chip now agrees with the zakat figure beside it**: it is
+  the engine's own answer instead of a comparison against gross assets.
+- **Paid-to-date is scoped to the current hawl.** Summing every payment ever made let last
+  year's payments suppress this year's "pay zakat" nudge.
+
+## [1.1.5] — security hygiene
+
+*Date and Hijri line are set at the release cut.*
+
+Nothing about how zakat is calculated changed. This is maintenance: an application is
+only as safe as the runtime underneath it, and ours had stopped receiving patches.
+
+### The runtime was end-of-life
+
+- The published backend image ran on **Node 20**, whose final release was 2026-03-24.
+  An EOL runtime receives no security patches at all, so every future CVE in it is
+  permanent by construction. `docker/Dockerfile.production` — the file Docker Hub
+  actually builds from — now uses **Node 24 LTS** for every stage, and CI tests on 24.
+- This also closes a gap between two Dockerfiles: `docker/Dockerfile.backend` had already
+  been moved to 24, but the published image is built from `Dockerfile.production`, which
+  had not. The fix was in the tree and never in the artifact.
+
+### Dependencies with no upgrade path we controlled
+
+- **CouchDB 3.5.1 → 3.5.3**, a patch release carrying fixes for several published
+  vulnerabilities. In-place upgrade; existing databases and replication state are read as
+  they are, no migration step.
+
+### Containers can no longer gain privilege, and cannot fill the disk
+
+- Every service now runs with `no-new-privileges`, so a binary inside a container cannot
+  gain privilege through setuid. Backend and CouchDB still *start* as root and drop to
+  their own user with `setpriv`; the flag means a compromised binary cannot climb back up
+  after that drop.
+- A `pids_limit` stops a fork bomb. Docker's own log output is capped at 10 MB × 3, and
+  Caddy's access log — which lives on the `caddy_data` volume and is therefore *not* covered
+  by docker's log driver — now rotates at 50 MB × 5. Previously that file was the one
+  unbounded sink in the stack.
+
+### The container scan was scanning the wrong image
+
+- `security-scan.yml` built `docker/Dockerfile.backend`, but Docker Hub publishes
+  `docker/Dockerfile.production`. Trivy was therefore reporting on an image that never
+  ships. It now builds the same file, at the same targets, as the release.
+- Dependency and container scans also run **nightly**. Advisories are published on their
+  own schedule, so a scan that only fires when we change a lockfile cannot see today's
+  CVE in yesterday's dependency.
+
+### Unchanged
+
+- No database migration, no API change, no change to stored records, and no change to any
+  calculation. If you self-host, `docker compose pull && docker compose up -d` is the whole
+  upgrade. See `SECURITY.md` for the host patch cadence that this release assumes of you.
+
 ## [1.1.4] - 2026-11-11
 
 *1 Jumada al-Akhirah 1448.*

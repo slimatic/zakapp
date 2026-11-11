@@ -114,10 +114,45 @@ git commit --no-verify  # Skips ALL pre-commit checks — use only in emergencie
 
 Our GitHub Actions run:
 
-- **Dependency audit** — `npm audit` on every PR
-- **Secret scanning** — gitleaks on every push/PR
-- **Static analysis** — Semgrep, ESLint Security, CodeQL
-- **Container scanning** — Trivy on Docker images (when container builds are enabled)
+| Control | When it runs |
+| --- | --- |
+| **Secret scanning** — gitleaks, full history | every push and PR |
+| **Dependency audit** — `npm audit`, OSV, Retire.js, Snyk | when a lockfile changes, **and nightly** |
+| **Static analysis** — Semgrep, ESLint Security, CodeQL | when source files change |
+| **Container scanning** — Trivy on the image built from `docker/Dockerfile.production` | every push and PR, **and nightly** |
+
+The nightly runs exist because advisories are published independently of our commits: a
+lockfile that was clean when it merged can acquire a published CVE while nobody touches
+it. A change-triggered scan cannot see that, and neither can a reviewer.
+
+## 🩹 Keeping a deployment patched
+
+This is the part that is yours, not ours. A local privilege-escalation bug in an
+operating system that is behind on patches is, in practice, equivalent to handing out
+root — "I have a low-privileged account" is not a mitigation in 2026. Frontier models
+find these classes of bug at a rate no maintainer can out-run, so the only durable
+control is **time-to-patch**, not the absence of bugs.
+
+If you self-host:
+
+- **Patch the host.** Enable unattended security upgrades on the machine running the
+  containers, and reboot when a kernel update lands:
+
+  ```bash
+  sudo apt-get install -y unattended-upgrades
+  sudo dpkg-reconfigure -plow unattended-upgrades   # security pocket only
+  ```
+
+- **Pull and restart the app** on the same cadence you patch the host. ZakApp images are
+  rebuilt from `main`; the compose file pins a release tag, so `docker compose pull && docker compose up -d`
+  is the update.
+
+- **Do not expose the compose stack directly to the internet.** Caddy terminates TLS in
+  front of it; publish only the two ports you actually need and keep them on your LAN or
+  a private network (Tailscale, WireGuard).
+
+- **Treat `.env` as a credential store**, not config: the JWT, encryption, and CouchDB
+  secrets in it are enough to read the database and mint sessions.
 
 ## 📞 Reporting Security Issues
 

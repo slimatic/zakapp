@@ -33,6 +33,14 @@ import { Money } from '../ui/Money';
 import { PaymentDetailModal } from './PaymentDetailModal';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import { Decimal } from 'decimal.js';
+import { groupPaymentsByRecipient } from '../../utils/paymentGrouping';
+import { paymentAmountInBase } from '../../utils/formatters';
+
+/**
+ * The payments page's filter value for payments that belong to no existing hawl
+ * record. It is a filter token, never a stored snapshotId.
+ */
+export const UNASSIGNED_SNAPSHOT = '__unassigned__';
 
 
 interface PaymentListProps {
@@ -100,12 +108,6 @@ export const PaymentList: React.FC<PaymentListProps> = ({
   const resolvedRecordId = nisabRecordId ?? snapshotId;
   const { payments: allPayments, isLoading, error } = usePaymentRepository();
 
-  // Filter by snapshotId if provided
-  const payments = useMemo(() => {
-    if (!resolvedRecordId) return allPayments;
-    return allPayments.filter(p => p.snapshotId === resolvedRecordId);
-  }, [allPayments, resolvedRecordId]);
-
   // Fetch Nisab Year Records locally
   const { records: nisabRecordsData } = useNisabRecordRepository();
 
@@ -117,6 +119,18 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     });
     return map;
   }, [nisabRecordsData]);
+
+  // Filter by snapshotId if provided. `UNASSIGNED_SNAPSHOT` is the payments page's
+  // bucket for rows whose hawl record no longer exists (an import, a deleted
+  // year). Matching it against the literal string would show nothing, so it is
+  // answered as "not in any known record".
+  const payments = useMemo(() => {
+    if (!resolvedRecordId) return allPayments;
+    if (resolvedRecordId === UNASSIGNED_SNAPSHOT) {
+      return allPayments.filter(p => !nisabRecordMap.has(p.snapshotId));
+    }
+    return allPayments.filter(p => p.snapshotId === resolvedRecordId);
+  }, [allPayments, resolvedRecordId, nisabRecordMap]);
 
   // Helper to coerce possibly-missing or non-numeric amounts into a safe number
   const safeAmount = (p: PaymentRecord | any): number => {
@@ -234,15 +248,24 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
   // Calculate totals
   const totalAmount = sortedAndFilteredPayments.reduce((sum: Decimal, payment: PaymentRecord) => {
-    return sum.plus(new Decimal(payment.amount || 0));
+    return sum.plus(new Decimal(paymentAmountInBase(payment)));
   }, new Decimal(0)).toNumber();
 
   const categoryTotals = sortedAndFilteredPayments.reduce((acc: Record<string, number>, payment: PaymentRecord) => {
     const cat = payment.recipientCategory || 'unknown';
-    const amount = new Decimal(payment.amount || 0);
+    const amount = new Decimal(paymentAmountInBase(payment));
     acc[cat] = new Decimal(acc[cat] || 0).plus(amount).toNumber();
     return acc;
   }, {});
+
+  /**
+   * "How much have I given this masjid / this family?" is the question a donor
+   * actually asks, and it had no answer anywhere in the product.
+   */
+  const recipientTotals = useMemo(
+    () => groupPaymentsByRecipient(sortedAndFilteredPayments),
+    [sortedAndFilteredPayments]
+  );
 
 
   if (isLoading) {
@@ -361,6 +384,42 @@ export const PaymentList: React.FC<PaymentListProps> = ({
             />
           </div>
         </div>
+      )}
+
+      {/* Per-recipient totals. Derived from the rows already filtered above, so
+          it follows the year filter and the search box. */}
+      {!compact && recipientTotals.length > 0 && (
+        <details className="rounded-lg border border-border bg-card">
+          <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-foreground">
+            By recipient ({recipientTotals.length})
+          </summary>
+          <div className="border-t border-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-muted-foreground">
+                  <th scope="col" className="px-4 py-2 text-start font-medium">Recipient</th>
+                  <th scope="col" className="px-4 py-2 text-end font-medium">Payments</th>
+                  <th scope="col" className="px-4 py-2 text-end font-medium">Total</th>
+                  <th scope="col" className="hidden px-4 py-2 text-end font-medium sm:table-cell">Last</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recipientTotals.map((entry) => (
+                  <tr key={entry.name} className="border-t border-border">
+                    <td className="px-4 py-2 text-foreground">{entry.name}</td>
+                    <td className="px-4 py-2 text-end tabular-nums text-muted-foreground">{entry.count}</td>
+                    <td className="px-4 py-2 text-end tabular-nums text-foreground">
+                      <Money value={entry.total.toNumber()} />
+                    </td>
+                    <td className="hidden px-4 py-2 text-end tabular-nums text-muted-foreground sm:table-cell">
+                      {entry.last ? new Date(entry.last).toLocaleDateString() : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
       )}
 
       {/* Sorting Controls */}

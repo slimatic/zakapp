@@ -66,7 +66,7 @@ router.post('/:id/retry', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.post('/:id/unrecoverable', requireAdmin, async (req, res) => {
+router.post('/:id/unrecoverable', authenticate, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { note } = req.body;
   try {

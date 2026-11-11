@@ -106,3 +106,45 @@ export const limitMessage = (category: LimitCategory, max: number): string => {
         : 'annual records';
     return `You have reached your limit of ${max} ${noun}. Remove one, or ask for a higher limit.`;
 };
+
+/**
+ * Split an incoming batch into what the account can hold and what it cannot.
+ *
+ * The naive `incoming.slice(0, remaining)` is wrong in both directions:
+ *   - a re-import of rows that ALREADY EXIST needs no new slot, yet a full
+ *     account reported "0 imported, you are at your limit" for a no-op;
+ *   - an update and a new row were treated alike, so a file with 10 existing
+ *     and 10 new rows kept the updates only by luck of ordering.
+ * An id already stored is an update and occupies no slot; only genuinely new
+ * ids consume the remaining allowance.
+ */
+export const partitionByQuota = async <T extends { id?: string }>(
+    category: LimitCategory,
+    collection: CountableCollection,
+    user: LimitBearingUser | null | undefined,
+    userId: string,
+    incoming: T[]
+): Promise<{ accepted: T[]; skipped: number; max: number | undefined; used: number }> => {
+    const quota = await getQuota(category, collection, user, userId);
+    if (quota.remaining === Infinity || incoming.length === 0) {
+        return { accepted: incoming, skipped: 0, max: quota.max, used: quota.used };
+    }
+
+    const ids = incoming.map((d) => d.id).filter((id): id is string => !!id);
+    const stored = ids.length
+        ? await collection.find({ selector: { id: { $in: ids } } }).exec()
+        : [];
+    const storedIds = new Set(stored.map((d: any) => d.get('id')));
+
+    let slots = quota.remaining;
+    const accepted = incoming.filter((doc) => {
+        if (doc.id && storedIds.has(doc.id)) return true;
+        if (slots > 0) {
+            slots -= 1;
+            return true;
+        }
+        return false;
+    });
+
+    return { accepted, skipped: incoming.length - accepted.length, max: quota.max, used: quota.used };
+};

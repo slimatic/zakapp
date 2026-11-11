@@ -110,7 +110,14 @@
     
     # Logging
     log {
-        output file /data/access.log
+        # roll_size/roll_keep are not optional here: /data is the caddy_data
+        # volume, and this is the only log in the stack that is not bounded by
+        # docker's json-file max-size. Without rotation the access log grows
+        # until the volume fills and takes the stack down with it.
+        output file /data/access.log {
+            roll_size 50MiB
+            roll_keep 5
+        }
         format json
     }
 }
@@ -221,7 +228,14 @@
     
     # Logging
     log {
-        output file /data/access.log
+        # roll_size/roll_keep are not optional here: /data is the caddy_data
+        # volume, and this is the only log in the stack that is not bounded by
+        # docker's json-file max-size. Without rotation the access log grows
+        # until the volume fills and takes the stack down with it.
+        output file /data/access.log {
+            roll_size 50MiB
+            roll_keep 5
+        }
         format json
     }
 }

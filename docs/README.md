@@ -14,8 +14,11 @@ Five documents describe deployment. Pick by what you are trying to do:
 | Understand the production architecture | [DEPLOY.md](../DEPLOY.md) |
 | Full reference: env vars, backups, rollback | [deployment-guide.md](deployment-guide.md) |
 
-For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md) and
-[AGENTS.md](../AGENTS.md).
+For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md),
+[AGENTS.md](../AGENTS.md), and the [testing guide](testing.md).
+
+Historical records live in [release-notes/](release-notes/) — including the
+[v1.0 release-readiness audit](release-notes/v1.0-audit.md), kept as written.
 
 ## 🗂️ Documentation Structure
 
@@ -24,15 +27,15 @@ For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md) and
 **New to ZakApp?** Start here:
 
 1. **[Main README](../README.md)** - Project overview, quick start, and installation
-2. **[Developer Onboarding](reports/DEVELOPER_ONBOARDING.md)** - Complete guide for new developers
-3. **[Development Setup](reports/DEVELOPMENT_SETUP.md)** - Detailed environment setup instructions
-4. **[Development Guide](reports/DEVELOPMENT.md)** - Development workflow and best practices
+2. **[Contributing](../CONTRIBUTING.md)** - How to set up, build, test and open a PR
+3. **[AGENTS.md](../AGENTS.md)** - The live repository map and the commands CI runs
+4. **[Testing](testing.md)** - Test suites, databases and the checks that gate a merge
 
 ### 🏗️ Architecture & Design
 
 **Understanding the system:**
 
-- **[Project Structure](project-structure.md)** - Repository organization and directory layout
+- **[Repository map](../AGENTS.md)** - The five projects, where code lives, and the commands CI runs
 - **[API Specification](api/api-specification.md)** - Complete REST API documentation
 - **[Database Schema](../server/prisma/schema.prisma)** - Prisma database model
 - **[User Stories](user-stories.md)** - Feature requirements and user flows
@@ -65,7 +68,7 @@ For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md) and
 
 **Security best practices:**
 
-- **[Security Guide](security.md)** - Security measures, authentication, encryption, and best practices
+- **[Security Policy](../SECURITY.md)** - The implemented security model, threat boundaries and reporting
 
 ### 📊 Project Status & Planning
 
@@ -124,15 +127,15 @@ completed-work documents, indexed by what replaced them.
 
 ### For New Contributors
 1. Start with [Main README](../README.md)
-2. Follow [Developer Onboarding](reports/DEVELOPER_ONBOARDING.md)
-3. Set up environment: [Development Setup](reports/DEVELOPMENT_SETUP.md)
-4. Learn workflow: [Development Guide](reports/DEVELOPMENT.md)
-5. Understand structure: [Project Structure](project-structure.md)
+2. Read [Contributing](../CONTRIBUTING.md)
+3. Set up the environment: [AGENTS.md](../AGENTS.md)
+4. Run the tests: [Testing](testing.md)
+5. Understand the layout: [AGENTS.md](../AGENTS.md#repository-layout)
 
 ### For Backend Developers
 1. Review [API Specification](api/api-specification.md)
 2. Study [Database Schema](../server/prisma/schema.prisma)
-3. Check [Security Guide](security.md)
+3. Check [Security Policy](../SECURITY.md)
 4. Understand [Islamic Zakat methodologies](methodology-guide.md)
 5. Run [Tests](../server/tests/)
 
@@ -174,7 +177,7 @@ When adding or updating documentation:
 
 - **Issues**: [GitHub Issues](https://github.com/slimatic/zakapp/issues)
 - **Questions**: Review [FAQ sections](../README.md#-troubleshooting) in main README
-- **Security**: See [Security Policy](security.md)
+- **Security**: See [Security Policy](../SECURITY.md)
 
 ---
 

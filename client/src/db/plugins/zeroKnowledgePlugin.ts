@@ -26,6 +26,13 @@ export const RxDBZeroKnowledgePlugin: RxPlugin = {
                 collection.preInsert(async (data: any) => {
                     for (const path of encryptedPaths) {
                         if (data[path]) {
+                            // A value that arrives already encrypted (a restore, a
+                            // replication pull, a caller that encrypted first) keeps
+                            // its single layer. Encrypting again produces a blob that
+                            // one decrypt cannot open, and the UI renders it as
+                            // "Encrypted recipient" with the plaintext still inside.
+                            if (cryptoService.isEncrypted(data[path])) continue;
+
                             try {
                                 const { cipherText, iv } = await cryptoService.encrypt(data[path]);
                                 data[path] = cryptoService.packEncrypted(iv, cipherText);

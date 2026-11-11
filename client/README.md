@@ -67,7 +67,7 @@ PORT=3010 npm start
 
 For more detailed configuration, see:
 - `.env.example` - All available environment variables
-- `../DEVELOPMENT_SETUP.md` - Complete development setup guide
+- `../CONTRIBUTING.md` - Development setup and workflow
 
 ## Getting Started with Create React App
 

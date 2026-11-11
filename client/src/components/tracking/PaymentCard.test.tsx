@@ -20,7 +20,7 @@
  */
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import { PaymentCard } from './PaymentCard';
@@ -89,5 +89,32 @@ describe('Encrypted recipient masking', () => {
     // Category and method share the muted sub-line instead of separate blocks.
     expect(screen.getByText(/Al-Fuqara \(The Poor\)/)).toBeInTheDocument();
     expect(screen.getByText(/Bank transfer/)).toBeInTheDocument();
+  });
+});
+
+describe('Receipt menu item', () => {
+  const snapshot = {
+    id: 'snapshot-1',
+    gregorianYear: 2026,
+    hijriYear: 1448,
+  } as any;
+
+  const renderWithMenu = (nisabYear?: any) =>
+    render(
+      <PrivacyProvider>
+        <PaymentCard payment={mockPayment} nisabYear={nisabYear} onViewDetails={() => {}} />
+      </PrivacyProvider>
+    );
+
+  it('offers a receipt when the payment belongs to a hawl year', () => {
+    renderWithMenu(snapshot);
+    fireEvent.click(screen.getByRole('button', { name: /Actions for payment/i }));
+    expect(screen.getByRole('menuitem', { name: /Receipt \(PDF\)/i })).toBeInTheDocument();
+  });
+
+  it('hides the receipt when there is no hawl year to print', () => {
+    renderWithMenu(undefined);
+    fireEvent.click(screen.getByRole('button', { name: /Actions for payment/i }));
+    expect(screen.queryByRole('menuitem', { name: /Receipt \(PDF\)/i })).not.toBeInTheDocument();
   });
 });

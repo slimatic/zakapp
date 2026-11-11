@@ -27,7 +27,7 @@ import { format } from 'date-fns';
 import type { YearlySnapshot, PaymentRecord } from '@zakapp/shared/types/tracking';
 import { formatCategoryName } from './chartFormatter';
 import { formatDualCalendar } from './calendarConverter';
-import { formatCurrency } from './formatters';
+import { formatCurrency, paymentAmountInBase } from './formatters';
 import { PDF_THEME, TABLE_STYLES } from './pdfTheme';
 
 /**
@@ -111,7 +111,7 @@ export function generateAnnualSummaryPDF(
   doc.text('Zakat Calculation', 14, yPosition);
   yPosition += 8;
 
-  const totalPaid = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const totalPaid = payments.reduce((sum, p) => sum + paymentAmountInBase(p), 0);
   const outstanding = snapshot.zakatAmount - totalPaid;
   const completionPercentage = snapshot.zakatAmount > 0 
     ? ((totalPaid / snapshot.zakatAmount) * 100).toFixed(1) 
@@ -150,9 +150,9 @@ export function generateAnnualSummaryPDF(
 
     const paymentData = payments.map(payment => [
       format(new Date(payment.paymentDate), 'MMM d, yyyy'),
-      formatCategoryName(payment.recipientType),
+      formatCategoryName(payment.recipientCategory || 'general'),
       payment.recipientName || 'Anonymous',
-      formatCurrency(payment.amount, currency),
+      formatCurrency(paymentAmountInBase(payment), currency),
       payment.notes || '-'
     ]);
 
@@ -281,7 +281,7 @@ export function generatePaymentReceiptPDF(
     ['Receipt ID', payment.receiptReference || payment.id.slice(0, 8)],
     ['Payment Date', formatDualCalendar(payment.paymentDate)],
     ['Amount', formatCurrency(payment.amount, currency)],
-    ['Category', formatCategoryName(payment.recipientType)],
+    ['Category', formatCategoryName(payment.recipientCategory || 'general')],
     ['Recipient', payment.recipientName || 'Anonymous'],
     ['Payment Method', payment.paymentMethod || 'Unknown'],
     ['Year', `${snapshot.gregorianYear} (${snapshot.hijriYear} AH)`]

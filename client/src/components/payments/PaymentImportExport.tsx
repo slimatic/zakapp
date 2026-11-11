@@ -17,6 +17,7 @@
 
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { cryptoService } from '../../services/CryptoService';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { Button, LoadingSpinner } from '../ui';
 import { requireImportedAmount } from '../../utils/parseDecimal';
@@ -38,12 +39,34 @@ export const PaymentImportExport: React.FC = () => {
   // Use repository without filtering (or filter by snapshot if context supports it in future)
   const { payments, addPayment } = usePaymentRepository();
 
+  /**
+   * A file written from unreadable rows is worse than no file: the ciphertext
+   * looks like a value until the day it is restored. Same rule as the full
+   * backup in UnifiedImportExport - refuse and say why.
+   */
+  const hasCiphertext = () =>
+    payments.some((p: any) =>
+      [p.recipientName, p.notes, p.receiptReference].some(
+        (v) => typeof v === 'string' && cryptoService.isEncrypted(v)
+      )
+    );
+
+  const refuseIfEncrypted = () => {
+    if (!hasCiphertext()) return false;
+    toast.error(
+      'Export cancelled: some records are still encrypted. Unlock your vault, reload, then export again.',
+      { duration: 8000 }
+    );
+    return true;
+  };
+
   // Export payments to CSV
   const handleExportCSV = () => {
     if (payments.length === 0) {
       toast.error('No payments to export');
       return;
     }
+    if (refuseIfEncrypted()) return;
 
     setExporting(true);
 
@@ -105,6 +128,7 @@ export const PaymentImportExport: React.FC = () => {
       toast.error('No payments to export');
       return;
     }
+    if (refuseIfEncrypted()) return;
 
     setExporting(true);
 

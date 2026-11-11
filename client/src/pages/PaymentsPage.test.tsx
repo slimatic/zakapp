@@ -52,6 +52,7 @@ vi.mock('../db', () => ({
 
 // Mock child components to isolate page logic
 vi.mock('../components/tracking/PaymentList', () => ({
+  UNASSIGNED_SNAPSHOT: '__unassigned__',
   PaymentList: ({ onCreateNew }: any) => (
     <div data-testid="payment-list">
       <button data-testid="mock-add-payment-btn" onClick={onCreateNew}>Add Payment (Mock)</button>

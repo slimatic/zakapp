@@ -56,7 +56,7 @@ export const NotificationSettings: React.FC = () => {
             <h3 className="text-sm font-medium text-foreground">Push Notifications</h3>
             <p className="text-sm text-muted-foreground">
               {subscribed
-                ? 'You will receive Zakat reminders 30, 7, and 1 day before due dates.'
+                ? 'You will receive a Zakat reminder 30 days before each due date.'
                 : 'Get reminded when your Zakat is due.'}
             </p>
           </div>
