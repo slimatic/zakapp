@@ -16,9 +16,12 @@ the one outside it is correct.
 |---|---|
 | `OFFLINE_CACHING_STRATEGY.md`, `PWA_IMPLEMENTATION.md` | `docs/pwa-guide.md` |
 | `QUICK_ENV_SETUP.md` | `docs/ENVIRONMENT_VARIABLES.md` |
-| `SQL_INJECTION_PREVENTION.md`, `SECURITY_SCAN.md` | `docs/security.md` |
+| `SQL_INJECTION_PREVENTION.md`, `SECURITY_SCAN.md`, `security.md` | `SECURITY.md` |
 | `ZK_EXECUTIVE_BRIEFING.md` | `docs/ARCHITECTURE.md` |
 | `ZK_API_SPECIFICATION.md` | `docs/api/api-specification.md` |
+| `project-structure.md`, `architecture/architecture.md` | `AGENTS.md` (repository map), `docs/ARCHITECTURE.md` |
+| `reports/DEVELOPER_ONBOARDING.md`, `reports/DEVELOPMENT.md`, `reports/DEVELOPMENT_SETUP.md` | `CONTRIBUTING.md`, `AGENTS.md`, `docs/testing.md` |
+| `FAQ.md` | `docs/troubleshooting-faq.md` |
 | `usability-test-scenarios.md` | `docs/manual-testing/` |
 | `tracking-user-guide.md` | `docs/user-guide/` |
 
