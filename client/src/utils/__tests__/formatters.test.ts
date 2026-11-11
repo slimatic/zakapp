@@ -15,7 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { formatPercentage } from '../formatters';
+import { formatPercentage, paymentAmountInBase } from '../formatters';
 
 describe('formatters', () => {
   it('formats decimal input correctly when isDecimal=true', () => {
@@ -25,5 +25,24 @@ describe('formatters', () => {
 
   it('formats percentage input correctly when isDecimal=false', () => {
     expect(formatPercentage(70, 1, false)).toBe('70.0%');
+  });
+});
+describe('paymentAmountInBase', () => {
+  it('applies the recorded rate, like the server total does', () => {
+    // 1,000,000 IDR at 0.000064 USD/IDR is $64, not $1,000,000.
+    expect(paymentAmountInBase({ amount: 1_000_000, exchangeRate: 0.000064 })).toBeCloseTo(64, 6);
+  });
+
+  it('treats a missing rate as 1 (single-currency payment)', () => {
+    expect(paymentAmountInBase({ amount: 250 })).toBe(250);
+  });
+
+  it('falls back to 1 for a nonsensical rate rather than zeroing the payment', () => {
+    expect(paymentAmountInBase({ amount: 250, exchangeRate: 0 })).toBe(250);
+    expect(paymentAmountInBase({ amount: 250, exchangeRate: -3 })).toBe(250);
+  });
+
+  it('accepts the string amounts an import produces', () => {
+    expect(paymentAmountInBase({ amount: '250.5', exchangeRate: '2' })).toBe(501);
   });
 });

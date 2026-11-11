@@ -385,6 +385,21 @@ export function convertCurrency(
 }
 
 /**
+ * A payment's value in the account's base currency.
+ *
+ * `amount` is in the payment's own currency and `exchangeRate` is the rate it
+ * was recorded at, so a total that adds face values counts 1,000 IDR as 1,000
+ * USD. Mirrors the server's `getTotalPaidForSnapshot` (`amount * exchangeRate`).
+ * A missing or nonsensical rate falls back to 1, which is what a single-currency
+ * payment means.
+ */
+export function paymentAmountInBase(payment: { amount?: number | string | null; exchangeRate?: number | string | null }): number {
+  const amount = Number(payment.amount) || 0;
+  const rate = Number(payment.exchangeRate ?? 1);
+  return amount * (Number.isFinite(rate) && rate > 0 ? rate : 1);
+}
+
+/**
  * Formats a number with sign (+ or -)
  * @param value - Numeric value
  * @param decimals - Number of decimal places

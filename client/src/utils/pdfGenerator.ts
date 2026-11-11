@@ -27,7 +27,7 @@ import { format } from 'date-fns';
 import type { YearlySnapshot, PaymentRecord } from '@zakapp/shared/types/tracking';
 import { formatCategoryName } from './chartFormatter';
 import { formatDualCalendar } from './calendarConverter';
-import { formatCurrency } from './formatters';
+import { formatCurrency, paymentAmountInBase } from './formatters';
 import { PDF_THEME, TABLE_STYLES } from './pdfTheme';
 
 /**
@@ -111,7 +111,7 @@ export function generateAnnualSummaryPDF(
   doc.text('Zakat Calculation', 14, yPosition);
   yPosition += 8;
 
-  const totalPaid = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const totalPaid = payments.reduce((sum, p) => sum + paymentAmountInBase(p), 0);
   const outstanding = snapshot.zakatAmount - totalPaid;
   const completionPercentage = snapshot.zakatAmount > 0 
     ? ((totalPaid / snapshot.zakatAmount) * 100).toFixed(1) 
@@ -152,7 +152,7 @@ export function generateAnnualSummaryPDF(
       format(new Date(payment.paymentDate), 'MMM d, yyyy'),
       formatCategoryName(payment.recipientCategory || 'general'),
       payment.recipientName || 'Anonymous',
-      formatCurrency(payment.amount, currency),
+      formatCurrency(paymentAmountInBase(payment), currency),
       payment.notes || '-'
     ]);
 

@@ -18,6 +18,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
+import { paymentAmountInBase } from '../utils/formatters';
 import { useAuth } from '../contexts/AuthContext';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { useAssetRepository } from '../hooks/useAssetRepository';
@@ -403,7 +404,7 @@ export const Dashboard: React.FC = () => {
     const scoped = activeRecord
       ? payments.filter((p) => p.snapshotId === activeRecord.id)
       : payments;
-    return scoped.reduce((sum, p) => sum + (p.amount || 0), 0);
+    return scoped.reduce((sum, p) => sum + paymentAmountInBase(p), 0);
   }, [payments, activeRecord]);
 
   // Hijri year for the hero note, when the record carries one.

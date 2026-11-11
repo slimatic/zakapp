@@ -14,6 +14,9 @@
   record no longer exists could be counted but never listed.
 - A payments export refuses to write a file while any record is still unreadable, instead
   of producing a backup that restores as ciphertext.
+- **Payment totals apply the recorded exchange rate.** Every list, annual record, analytics
+  figure, chart and PDF summed face values, so a payment of 1,000,000 IDR counted as
+  1,000,000 USD; totals now match the server's own `amount × exchangeRate`.
 
 ### Data integrity
 

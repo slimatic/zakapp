@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Logo } from '../common/Logo';
 
@@ -32,6 +33,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export const InstallPrompt: React.FC = () => {
+  const { pathname } = useLocation();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -130,7 +132,11 @@ export const InstallPrompt: React.FC = () => {
   };
 
   // Don't show if already installed or no prompt available
-  if (isInstalled || !showPrompt || !deferredPrompt) {
+  // On a short viewport this sheet covers the sign-in form. Install prompts
+  // belong after someone has seen the app, so the auth screens are excluded.
+  const onAuthRoute = ['/login', '/register', '/verify-email', '/forgot-password', '/reset-password']
+    .some((route) => pathname.startsWith(route));
+  if (isInstalled || !showPrompt || !deferredPrompt || onAuthRoute) {
     return null;
   }
 

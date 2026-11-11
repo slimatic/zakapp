@@ -10,6 +10,7 @@
 import { Decimal } from 'decimal.js';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import { looksEncrypted } from './encryption';
+import { paymentAmountInBase } from './formatters';
 
 export interface RecipientTotal {
     /** The spelling shown to the user (first one seen for that recipient). */
@@ -43,7 +44,7 @@ export const groupPaymentsByRecipient = (payments: PaymentRecord[]): RecipientTo
             : (payment.paymentDate as Date | undefined)?.toISOString?.() || '';
 
         entry.count += 1;
-        entry.total = entry.total.plus(new Decimal(payment.amount || 0));
+        entry.total = entry.total.plus(new Decimal(paymentAmountInBase(payment)));
         if (date > entry.last) entry.last = date;
         byName.set(key, entry);
     }

@@ -24,7 +24,7 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { formatCurrency, formatPercentage } from '../../utils/formatters';
+import { formatCurrency, formatPercentage, paymentAmountInBase } from '../../utils/formatters';
 import { formatGregorianDate, formatHijriDate } from '../../utils/calendarConverter';
 import { generateAnnualSummaryPDF, downloadPDF } from '../../utils/pdfGenerator';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
@@ -50,7 +50,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
   const { payments } = usePaymentRepository({ snapshotId: snapshot.id });
 
   // Calculate summary statistics
-  const totalPaid = payments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
+  const totalPaid = payments.reduce((sum, payment) => sum + paymentAmountInBase(payment), 0);
   const remainingZakat = Math.max(0, snapshot.zakatAmount - totalPaid);
   const paymentProgress = snapshot.zakatAmount > 0 ? (totalPaid / snapshot.zakatAmount) * 100 : 0;
   const netWorth = snapshot.totalWealth - snapshot.totalLiabilities;
