@@ -59,6 +59,15 @@ import { MaintenanceMiddleware } from './middleware/MaintenanceMiddleware';
 
 const app = express();
 
+// Behind Nginx/Cloudflare every request carries the proxy's IP, which collapses
+// all users into ONE rate-limit bucket and defeats per-client limits. Opt in per
+// deployment: TRUST_PROXY=1 (hops) or a subnet/CIDR. Off by default, because
+// trusting a header a client can set lets anyone forge their own IP.
+const trustProxy = process.env.TRUST_PROXY;
+if (trustProxy) {
+  app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
+}
+
 // Security middleware
 // Security middleware
 app.use(helmet({
