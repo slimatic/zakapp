@@ -8,9 +8,10 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../../src/config/prismaAdapter';
 import { WealthAggregationService } from '../../src/services/wealthAggregationService';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 const service = new WealthAggregationService(prisma);
 
 describe('WealthAggregationService Performance', () => {

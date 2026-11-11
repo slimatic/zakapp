@@ -25,9 +25,10 @@ import { Request, Response } from 'express';
 import { CalendarService } from '../services/calendarService';
 import { PrismaClient } from '@prisma/client';
 import { logger } from '../utils/logger';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
 const calendarService = new CalendarService();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 /**
  * Safely extracts error message from unknown error type

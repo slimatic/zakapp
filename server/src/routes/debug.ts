@@ -18,9 +18,10 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from '../services/EncryptionService';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 // Development-only diagnostic endpoint to inspect raw payment fields
 router.get('/payments-raw', async (req, res) => {

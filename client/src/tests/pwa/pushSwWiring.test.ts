@@ -47,7 +47,7 @@ describe('#383 web-push service worker wiring', () => {
   });
 
   it('is pulled into the generated worker via workbox importScripts', () => {
-    const cfg = read('client/vite.config.ts');
+    const cfg = read('client/vite.config.mts');
     // generateSW mode writes dist/sw.js; without importScripts the handler file
     // is simply never loaded.
     expect(cfg).toContain("importScripts: ['push-sw.js']");

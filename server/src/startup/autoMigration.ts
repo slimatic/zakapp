@@ -21,9 +21,10 @@ import { Logger } from '../utils/logger';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
 const logger = new Logger('AutoMigration');
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 interface MigrationResult {
   success: boolean;
@@ -193,9 +194,7 @@ function sha256File(filePath: string): Promise<string> {
 export async function verifyBackupIntegrity(
   backupPath: string
 ): Promise<{ ok: boolean; reason?: string; userCount?: number }> {
-  const probe = new PrismaClient({
-    datasources: { db: { url: `file:${backupPath}` } },
-  });
+  const probe = new PrismaClient({ adapter: sqliteAdapter(`file:${backupPath}`) });
 
   try {
     const integrityRows = await probe.$queryRawUnsafe<Array<{ integrity_check: string }>>(

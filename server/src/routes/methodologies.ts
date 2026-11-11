@@ -46,7 +46,7 @@ const UpdateMethodologySchema = z.object({
   nisabBasis: z.string().optional(),
   customNisabValue: z.number().positive().optional(),
   rate: z.number().min(0).max(100).optional(),
-  assetRules: z.record(z.unknown()).optional()
+  assetRules: z.record(z.string(), z.unknown()).optional()
 });
 
 router.put('/:id', authenticate, validateSchema(UpdateMethodologySchema), updateMethodology);
@@ -57,7 +57,7 @@ const CreateCustomMethodologySchema = z.object({
   nisabBasis: z.string(),
   customNisabValue: z.number().positive().optional(),
   rate: z.number().min(0).max(100),
-  assetRules: z.record(z.unknown())
+  assetRules: z.record(z.string(), z.unknown())
 });
 
 router.post('/custom', authenticate, validateSchema(CreateCustomMethodologySchema), createCustomMethodology);

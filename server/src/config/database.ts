@@ -35,6 +35,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
 import { PrismaClient, Prisma } from '@prisma/client';
+import { sqliteAdapter } from './prismaAdapter';
 import { Logger } from '../utils/logger';
 
 const logger = new Logger('DatabaseConfig');
@@ -98,18 +99,13 @@ export class DatabaseManager {
     };
 
     this.prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: this.config.url
-        }
-      },
+      adapter: sqliteAdapter(this.config.url),
       log: this.config.enableLogging ? [
         { level: 'query', emit: 'event' },
         { level: 'error', emit: 'event' },
         { level: 'info', emit: 'event' },
         { level: 'warn', emit: 'event' }
       ] : [],
-      errorFormat: 'pretty'
     });
 
     this.setupEventListeners();

@@ -20,7 +20,9 @@ module.exports = {
     '@typescript-eslint/no-non-null-assertion': 'warn',
     // Basic TypeScript rules
     '@typescript-eslint/ban-ts-comment': 'error',
-    '@typescript-eslint/ban-types': 'error',
+    // ban-types was removed in @typescript-eslint 8; its replacements
+    // (no-empty-object-type, no-unsafe-function-type) ship in the plugin's
+    // recommended set, which this config does not extend.
     'no-array-constructor': 'off',
     '@typescript-eslint/no-array-constructor': 'error',
     '@typescript-eslint/no-duplicate-enum-values': 'error',

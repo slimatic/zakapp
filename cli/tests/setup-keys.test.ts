@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import inquirer from 'inquirer';
-import { setupCommand } from '../src/commands/setup';
-import * as configModule from '../src/config';
+import { setupCommand } from '../src/commands/setup.js';
+import * as configModule from '../src/config.js';
 
 // Mock dependencies
 vi.mock('inquirer');
@@ -37,7 +37,7 @@ describe('Setup Command - Security Keys', () => {
     vi.spyOn(inquirer, 'prompt').mockResolvedValue(newAnswers);
 
     // Act
-    await setupCommand.parseAsync(['node', 'test', 'setup']);
+    await setupCommand.parseAsync(['node', 'test']);
 
     // Assert
     expect(configModule.saveConfig).toHaveBeenCalled();
@@ -76,7 +76,7 @@ describe('Setup Command - Security Keys', () => {
     vi.spyOn(inquirer, 'prompt').mockResolvedValue(newAnswers);
 
     // Act
-    await setupCommand.parseAsync(['node', 'test', 'setup']);
+    await setupCommand.parseAsync(['node', 'test']);
 
     // Assert
     expect(configModule.saveConfig).toHaveBeenCalled();

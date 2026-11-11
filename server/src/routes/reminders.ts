@@ -33,7 +33,7 @@ const createReminderSchema = z.object({
   message: z.string().min(1).max(1000),
   priority: z.enum(['high', 'medium', 'low']).default('medium'),
   relatedSnapshotId: z.string().optional(),
-  metadata: z.record(z.unknown()).optional()
+  metadata: z.record(z.string(), z.unknown()).optional()
 });
 
 const updateReminderSchema = z.object({

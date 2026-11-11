@@ -26,7 +26,7 @@
  */
 
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
-import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
+import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/client';
 import { ZodError } from 'zod';
 
 /**
@@ -260,7 +260,7 @@ export class ErrorConverter {
    * Convert Zod validation errors to AppError
    */
   public static fromZodError(error: ZodError): AppError {
-    const formattedErrors = error.errors.map(err => ({
+    const formattedErrors = error.issues.map(err => ({
       field: err.path.join('.'),
       message: err.message,
       code: err.code

@@ -77,10 +77,10 @@ if (typeof window.matchMedia === 'undefined') {
 	});
 }
 
-// Mock jsPDF and autotable
- 
-try {
-	vi.mock('jspdf', () => {
+// Mock jsPDF and autotable.
+// vi.mock is hoisted to the top of this module, so it must sit at top level —
+// vitest 5 fails the run when it is wrapped in a try/catch.
+vi.mock('jspdf', () => {
 		const mockJsPDF = vi.fn().mockImplementation(() => ({
 			internal: { pageSize: { getWidth: () => 210, getHeight: () => 297 } },
 			setFontSize: vi.fn(),
@@ -94,40 +94,24 @@ try {
 			output: vi.fn(() => new Blob())
 		}));
 		return { __esModule: true, jsPDF: mockJsPDF, default: mockJsPDF };
-	});
+});
 
-	vi.mock('jspdf-autotable', () => {
-		function autoTable(doc: any) {
-			(doc as any).lastAutoTable = { finalY: ((doc as any).lastAutoTable?.finalY || 0) + 50 };
-			return doc;
-		}
-		return { __esModule: true, default: autoTable };
-	});
-
-	// Global stub for PrivacyContext
-	// Note: Vitest handles module mocking slightly differently, but vi.mock works for paths too if aliases align
-	// We will verify if this block is needed or if we should rely on individual test mocks
-} catch (e) {
-	// ignore
-}
+vi.mock('jspdf-autotable', () => {
+	function autoTable(doc: any) {
+		(doc as any).lastAutoTable = { finalY: ((doc as any).lastAutoTable?.finalY || 0) + 50 };
+		return doc;
+	}
+	return { __esModule: true, default: autoTable };
+});
 
 // Ensure a safe default for useNavigate
-try {
-	//   const reactRouter = require('react-router-dom');
-	//   if (reactRouter && reactRouter.useNavigate) {
-	//     vi.spyOn(reactRouter, 'useNavigate').mockImplementation(() => vi.fn());
-	//   }
-	// Better approach: Mock the module directly
-	vi.mock('react-router-dom', async () => {
-		const actual = await vi.importActual('react-router-dom');
-		return {
-			...actual,
-			useNavigate: () => vi.fn(),
-		};
-	});
-} catch (e) {
-	// ignore
-}
+vi.mock('react-router-dom', async () => {
+	const actual = await vi.importActual('react-router-dom');
+	return {
+		...actual,
+		useNavigate: () => vi.fn(),
+	};
+});
 
 // Shim jest for legacy code if needed
 // Shim jest for legacy code if needed

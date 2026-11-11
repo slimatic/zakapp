@@ -99,7 +99,7 @@ describe('issue #310 round 4 — server fallback + FX endpoint', () => {
 
 describe('issue #310 round 4 — SW navigation fallback', () => {
   it('navigateFallback is the app shell, NOT offline.html', () => {
-    const viteConfig = readRepo('client/vite.config.ts');
+    const viteConfig = readRepo('client/vite.config.mts');
     expect(viteConfig).toMatch(/navigateFallback:\s*'\/index\.html'/);
     expect(viteConfig).not.toMatch(/navigateFallback:\s*'\/offline\.html'/);
   });

@@ -21,8 +21,9 @@ import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 import { DEFAULT_LIMITS } from '../config/limits';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 
 export interface CreateUserDto {

@@ -29,13 +29,14 @@
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '../utils/logger';
 import { readEncryptedAmount } from '../utils/encryptedNumbers';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
 // Re-exported so existing imports of this module keep working. The implementation
 // now lives in utils/encryptedNumbers.ts, shared with the live Hawl tracking path.
 export { readEncryptedAmount };
 
 const logger = new Logger('SummaryRegeneration');
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 
 /**

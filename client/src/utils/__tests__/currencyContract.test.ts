@@ -43,6 +43,22 @@ const CURRENCY_CONFIG_DECIMALS: Record<string, number> = {
   INR: 2, MYR: 2, IDR: 0, TRY: 2, EGP: 2,
 };
 
+// vi.mock/vi.hoisted are hoisted above every import, so they must live at the
+// module's top level — vitest 5 fails the file when they sit inside a describe.
+const mocks = vi.hoisted(() => ({
+  mockMask: vi.fn((v: string) => v),
+  mockSettingsRepo: vi.fn(),
+  mockUseAuth: vi.fn(),
+}));
+
+vi.mock('../../contexts/AuthContext', () => ({ useAuth: mocks.mockUseAuth }));
+vi.mock('../../contexts/PrivacyContext', () => ({
+  useMaskedCurrency: () => mocks.mockMask,
+}));
+vi.mock('../../hooks/useUserSettingsRepository', () => ({
+  useUserSettingsRepository: mocks.mockSettingsRepo,
+}));
+
 // ── Rule 1: strict per-currency decimals ────────────────────────────────────
 
 describe('currency contract: strict decimals', () => {
@@ -194,20 +210,6 @@ describe('currency contract: existing behaviour preserved', () => {
 // ── The two canonical paths must agree ──────────────────────────────────────
 
 describe('currency contract: both canonical paths agree', () => {
-  const mocks = vi.hoisted(() => ({
-    mockMask: vi.fn((v: string) => v),
-    mockSettingsRepo: vi.fn(),
-    mockUseAuth: vi.fn(),
-  }));
-
-  vi.mock('../../contexts/AuthContext', () => ({ useAuth: mocks.mockUseAuth }));
-  vi.mock('../../contexts/PrivacyContext', () => ({
-    useMaskedCurrency: () => mocks.mockMask,
-  }));
-  vi.mock('../../hooks/useUserSettingsRepository', () => ({
-    useUserSettingsRepository: mocks.mockSettingsRepo,
-  }));
-
   it('useDisplayCurrency matches formatCurrency for the same code and amount', async () => {
     const { useDisplayCurrency } = await import('../../hooks/useDisplayCurrency');
     mocks.mockSettingsRepo.mockReturnValue({ settings: { baseCurrency: 'USD' } });
