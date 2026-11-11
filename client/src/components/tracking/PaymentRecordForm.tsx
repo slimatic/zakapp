@@ -45,7 +45,7 @@ const paymentRecordFormSchema = z.object({
   // Canonical asnaf only — the server rejects anything else with a 500, so
   // offering a wider list here would let a payment be saved that cannot sync.
   recipientCategory: z.enum(['fakir', 'miskin', 'amil', 'muallaf', 'riqab', 'gharimin', 'fisabilillah', 'ibnus_sabil'], {
-    errorMap: () => ({ message: 'Please select a valid recipient category' })
+    error: 'Please select a valid recipient category'
   }),
   recipientType: z.enum(['individual', 'organization', 'charity', 'institution']).default('individual'),
   paymentMethod: z.enum(['cash', 'bank_transfer', 'check', 'online', 'other']).default('cash'),

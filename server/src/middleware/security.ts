@@ -30,7 +30,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { AuthenticatedRequest } from '../types';
 
 /**
@@ -51,7 +51,7 @@ export const snapshotRateLimit = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
     // Use user ID for authenticated requests
-    return (req as AuthenticatedRequest).userId || req.ip || 'unknown';
+    return (req as AuthenticatedRequest).userId || ipKeyGenerator(req.ip ?? '') || 'unknown';
   },
 });
 
@@ -72,7 +72,7 @@ export const analyticsRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    return (req as AuthenticatedRequest).userId || req.ip || 'unknown';
+    return (req as AuthenticatedRequest).userId || ipKeyGenerator(req.ip ?? '') || 'unknown';
   },
 });
 
@@ -93,7 +93,7 @@ export const paymentRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    return (req as AuthenticatedRequest).userId || req.ip || 'unknown';
+    return (req as AuthenticatedRequest).userId || ipKeyGenerator(req.ip ?? '') || 'unknown';
   },
 });
 

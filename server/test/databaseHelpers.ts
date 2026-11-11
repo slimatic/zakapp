@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../src/config/prismaAdapter';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
@@ -31,13 +32,7 @@ export async function setupTestDatabase() {
     });
 
     // Create new Prisma client for this test
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.TEST_DATABASE_URL || 'file:./test.db'
-        }
-      }
-    });
+    prisma = new PrismaClient({ adapter: sqliteAdapter(process.env.TEST_DATABASE_URL || 'file:./test.db') });
 
     // Connect to the database
     await prisma.$connect();

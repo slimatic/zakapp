@@ -1,3 +1,7 @@
+/* Tailwind 4: CSS-first entry; @config keeps the existing JS theme file authoritative. */
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
 /* ── Self-hosted fonts (v1.0) — replaces Google Fonts links in index.html ── */
 @font-face {
   font-family: 'Inter';
@@ -48,9 +52,6 @@
   unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
   :root {

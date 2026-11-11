@@ -11,8 +11,9 @@ import { vi, type Mock } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../../src/config/prismaAdapter';
 
-// const prisma = new PrismaClient(); // Removed global instance
+// const prisma = new PrismaClient({ adapter: sqliteAdapter() }); // Removed global instance
 
 describe('Integration: Unlock-Edit-Refinalize Workflow', () => {
   let authToken: string;
@@ -38,14 +39,14 @@ describe('Integration: Unlock-Edit-Refinalize Workflow', () => {
   });
 
   afterAll(async () => {
-    const prisma = new PrismaClient();
+    const prisma = new PrismaClient({ adapter: sqliteAdapter() });
     await prisma.user.delete({ where: { id: userId } }).catch(() => { });
     await prisma.$disconnect();
   });
 
   afterEach(async () => {
     // Clean up all Nisab records created during the test to avoid hitting resource limits
-    const prisma = new PrismaClient();
+    const prisma = new PrismaClient({ adapter: sqliteAdapter() });
     await prisma.yearlySnapshot.deleteMany({ where: { userId } }).catch(() => { });
     await prisma.$disconnect();
   });

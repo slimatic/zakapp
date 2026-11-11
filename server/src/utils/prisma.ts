@@ -21,16 +21,16 @@
 // The client will respect TEST_DATABASE_URL when present for deterministic tests.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { PrismaClient } = require('@prisma/client');
-// import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
 const url = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL || 'file:./dev.db';
 
 
-export const prisma = new PrismaClient({ datasources: { db: { url } } });
+export const prisma = new PrismaClient({ adapter: sqliteAdapter(url) });
 
 export function getPrismaClient(options?: any) {
   if (!options) {
     return prisma;
   }
-  return new PrismaClient({ ...options, datasources: { db: { url } } });
+  return new PrismaClient({ ...options, adapter: sqliteAdapter(url) });
 }
