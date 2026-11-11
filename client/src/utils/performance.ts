@@ -33,7 +33,7 @@ import { logger } from './logger';
  * - TTFB (Time to First Byte): Server responsiveness - target <600ms
  */
 
-import { getCLS, getFID, getFCP, getLCP, getTTFB, Metric } from 'web-vitals';
+import { onCLS, onINP, onFCP, onLCP, onTTFB, type Metric } from 'web-vitals';
 
 const API_ENDPOINT = '/api/analytics/web-vitals';
 
@@ -174,22 +174,22 @@ export const initPerformanceMonitoring = (): void => {
   }
 
   // Register metric handlers
-  getCLS(handleMetric);
-  getFID(handleMetric);
-  getFCP(handleMetric);
-  getLCP(handleMetric);
-  getTTFB(handleMetric);
+  onCLS(handleMetric);
+  onINP(handleMetric);
+  onFCP(handleMetric);
+  onLCP(handleMetric);
+  onTTFB(handleMetric);
 };
 
 /**
  * Report all metrics manually (useful for SPA route changes)
  */
 export const reportAllMetrics = (): void => {
-  getCLS(handleMetric, true);
-  getFID(handleMetric);
-  getFCP(handleMetric);
-  getLCP(handleMetric, true);
-  getTTFB(handleMetric);
+  onCLS(handleMetric, { reportAllChanges: true });
+  onINP(handleMetric);
+  onFCP(handleMetric);
+  onLCP(handleMetric, { reportAllChanges: true });
+  onTTFB(handleMetric);
 };
 
 // Export types for use in other modules

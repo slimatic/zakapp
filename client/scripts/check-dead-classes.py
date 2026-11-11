@@ -78,7 +78,7 @@ def selector_set(css: str) -> set:
         sel = sel.strip()
         if not sel or sel.startswith("@"):
             continue
-        for name in re.findall(r"\.([^\s{,>~+]*?(?:\\.[^\s{,>~+]*?)*)(?<!\\)(?=[\s{,>~+]|:(?!\\|:)|$)", sel):
+        for name in re.findall(r"\.([^\s{,>~+]*?(?:\\.[^\s{,>~+]*?)*)(?<!\\)(?=[\s{,>~+)]|:(?!\\|:)|$)", sel):
             if not name:
                 continue
             out.add(name.replace("\\", ""))

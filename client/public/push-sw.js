@@ -25,7 +25,7 @@
  * replaced.
  *
  * Instead this file is pulled in by the generated worker via
- * `workbox.importScripts` in `client/vite.config.ts`, so it runs in the same
+ * `workbox.importScripts` in `client/vite.config.mts`, so it runs in the same
  * global scope and can register its own listeners.
  *
  * Plain ES5-compatible JS on purpose: files in `public/` are copied verbatim
