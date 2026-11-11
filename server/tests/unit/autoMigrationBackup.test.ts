@@ -18,6 +18,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { sqliteAdapter } from '../../src/config/prismaAdapter';
 import { verifyBackupIntegrity } from '../../src/startup/autoMigration';
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
@@ -40,7 +41,7 @@ afterAll(() => {
 
 /** Build a real, valid SQLite database with a users table at `file`. */
 async function makeValidDb(file: string, userCount: number): Promise<void> {
-  const client = new PrismaClient({ datasources: { db: { url: `file:${file}` } } });
+  const client = new PrismaClient({ adapter: sqliteAdapter(`file:${file}`) });
   try {
     // NOTE: use $queryRawUnsafe for PRAGMA — it returns a row, and
     // $executeRawUnsafe rejects any statement that produces results.
@@ -144,7 +145,7 @@ describe('THE POINT: it fails closed', () => {
     // correctly still reports the database as intact. So this fixture writes
     // enough rows to occupy real data pages before corrupting them.
     const file = path.join(tmpDir, 'corrupted.db');
-    const client = new PrismaClient({ datasources: { db: { url: `file:${file}` } } });
+    const client = new PrismaClient({ adapter: sqliteAdapter(`file:${file}`) });
     try {
       await client.$executeRawUnsafe(`
         CREATE TABLE IF NOT EXISTS users (
@@ -197,7 +198,7 @@ describe('THE POINT: it fails closed', () => {
     // Structurally valid, but not a ZakApp database. Accepting it during an
     // upgrade would silently replace real data with nothing.
     const file = path.join(tmpDir, 'no-users-table.db');
-    const client = new PrismaClient({ datasources: { db: { url: `file:${file}` } } });
+    const client = new PrismaClient({ adapter: sqliteAdapter(`file:${file}`) });
     try {
       await client.$executeRawUnsafe('CREATE TABLE unrelated (id TEXT PRIMARY KEY)');
     } finally {

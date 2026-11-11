@@ -27,6 +27,7 @@ import { ReminderService } from '../services/ReminderService';
 import { CalendarConversionService } from '../services/CalendarConversionService';
 import { ComparisonService } from '../services/ComparisonService';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../config/prismaAdapter';
 import { Logger } from '../utils/logger';
 
 const logger = new Logger('TrackingRoute');
@@ -51,7 +52,7 @@ const summaryService = new AnnualSummaryService();
 const reminderService = new ReminderService();
 const calendarService = new CalendarConversionService();
 const comparisonService = new ComparisonService();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 /**
  * Standard API Response Format

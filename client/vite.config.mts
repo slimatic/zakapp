@@ -303,10 +303,14 @@ export default defineConfig(({ mode, isPreview }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            vendor: ['react', 'react-dom'],
-            router: ['react-router-dom'],
-            ui: ['@headlessui/react', '@radix-ui/react-dialog'],
+          // Vite 8 (rolldown) dropped object-form manualChunks; groups are the
+          // equivalent split by module id.
+          advancedChunks: {
+            groups: [
+              { name: 'vendor', test: /node_modules[\\/](react|react-dom)[\\/]/ },
+              { name: 'router', test: /node_modules[\\/]react-router/ },
+              { name: 'ui', test: /node_modules[\\/](@headlessui|@radix-ui)[\\/]/ },
+            ],
           },
         },
       },

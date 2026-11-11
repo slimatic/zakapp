@@ -29,9 +29,10 @@
 import { PrismaClient } from '@prisma/client';
 import { toHijri } from 'hijri-converter';
 import { Logger } from '../utils/logger';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
 const logger = new Logger('ReminderGeneration');
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 
 /**

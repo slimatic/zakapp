@@ -24,8 +24,9 @@ process.env.ENCRYPTION_KEY = 'test-encryption-key-32bytes-267';
 process.env.NODE_ENV = 'test';
 
 import app from '../../app';
+import { sqliteAdapter } from '../../config/prismaAdapter';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 describe('JWT Secret Stability (#267 regression)', () => {
   const testUser = {

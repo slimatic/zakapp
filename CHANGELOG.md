@@ -49,6 +49,43 @@ only as safe as the runtime underneath it, and ours had stopped receiving patche
   calculation. If you self-host, `docker compose pull && docker compose up -d` is the whole
   upgrade. See `SECURITY.md` for the host patch cadence that this release assumes of you.
 
+## [1.1.4] - 2026-11-11
+
+*1 Jumada al-Akhirah 1448.*
+
+A dependency and security patch on 1.1.3. Nothing about how zakat is calculated changed.
+
+### Two advisories closed
+
+- The validation library every request passes through (`zod`) was on a line below 4.6.6, where a
+  high-severity advisory applies. The shared package had already moved; the server, the browser
+  bundle and the CLI had not. All three are now on the fixed line.
+- A regular-expression denial-of-service in the PostCSS selector parser reached the build through
+  the typography plugin, which pins an older copy. The build now resolves the fixed version.
+
+`npm audit --omit=dev` reports zero advisories across all five packages.
+
+### The dependency tree is current again
+
+Six major upgrades that had been queued and blocked for weeks now land together: the database
+client (Prisma 7), the HTTP framework (Express 5), the bundler (Vite 8, now rolldown-based), the
+styling engine (Tailwind 4), the linter (ESLint 10) and the local database layer (RxDB 17), plus the
+test toolchain underneath them.
+
+Two of those majors change behaviour at the edges, and both are handled rather than papered over:
+the database client now needs an explicit driver, so the server supplies one that also keeps the
+storage directory creation and busy timeout the previous version gave for free; and request bodies
+and route parameters are typed differently, which is fixed once in the middleware instead of at
+every route.
+
+### What to check after upgrading
+
+- No database migration and no re-encryption. Existing local databases and server data open as
+  before.
+- Tailwind 4 re-scaled a handful of default utilities (shadows, corner radii, blur). The theme
+  itself is unchanged because the existing configuration is still authoritative, but any screen
+  that looks subtly different is worth a second look.
+
 ## [1.1.3] - 2026-11-04
 
 *24 Jumada al-Awwal 1448.*

@@ -150,7 +150,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity"
+            className="fixed inset-0 bg-black/50 z-50 transition-opacity"
             onClick={closeMenu}
             aria-hidden="true"
             data-testid="mobile-nav-backdrop"

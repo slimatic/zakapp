@@ -20,6 +20,8 @@ import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { UserService } from '../services/UserService';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../config/prismaAdapter';
+import { param } from '../utils/params';
 
 const userService = new UserService();
 
@@ -119,7 +121,7 @@ export class UserController {
 
   deleteSession = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.userId!;
-    const { id } = req.params;
+    const id = param(req.params.id);
 
     if (!id) {
       throw new AppError('Session ID is required', 400, ErrorCode.VALIDATION_ERROR);
@@ -202,7 +204,7 @@ export class UserController {
 
     // Get user's assets
     // const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
+    const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
     try {
       const assets = await prisma.asset.findMany({

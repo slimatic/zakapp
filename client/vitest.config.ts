@@ -27,7 +27,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // These are build-time constants injected by vite.config.ts. Tests never run
+  // These are build-time constants injected by vite.config.mts. Tests never run
   // through that config, so any component that reads them throws
   // "__APP_VERSION__ is not defined" the moment a test renders it for real.
   // AuthLayout does exactly that, which silently made the whole Login screen

@@ -23,6 +23,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../../src/config/prismaAdapter';
 
 let prisma: PrismaClient;
 let userId: string;
@@ -44,7 +45,7 @@ const baseCalc = () => ({
 });
 
 beforeEach(async () => {
-  prisma = new PrismaClient();
+  prisma = new PrismaClient({ adapter: sqliteAdapter() });
   const stamp = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const user = await prisma.user.create({
     data: {

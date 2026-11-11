@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import inquirer from 'inquirer';
-import { setupCommand } from '../src/commands/setup';
-import * as configModule from '../src/config';
+import { setupCommand } from '../src/commands/setup.js';
+import * as configModule from '../src/config.js';
 import chalk from 'chalk';
 
 // Mock dependencies
@@ -43,7 +43,7 @@ describe('Setup Command Interaction', () => {
     });
 
     // Act
-    await setupCommand.parseAsync(['node', 'test', 'setup']);
+    await setupCommand.parseAsync(['node', 'test']);
 
     // Assert
     expect(configModule.loadConfig).toHaveBeenCalled();
@@ -78,7 +78,7 @@ describe('Setup Command Interaction', () => {
     });
 
     // Act
-    await setupCommand.parseAsync(['node', 'test', 'setup']);
+    await setupCommand.parseAsync(['node', 'test']);
 
     // Assert
     expect(configModule.loadConfig).toHaveBeenCalled();
@@ -103,7 +103,7 @@ describe('Setup Command Interaction', () => {
     vi.spyOn(inquirer, 'prompt').mockResolvedValue(newAnswers);
 
     // Act
-    await setupCommand.parseAsync(['node', 'test', 'setup']);
+    await setupCommand.parseAsync(['node', 'test']);
 
     // Assert
     const expectedConfig = {
@@ -127,7 +127,7 @@ describe('Setup Command Interaction', () => {
     });
 
     // Act
-    await setupCommand.parseAsync(['node', 'test', 'setup']);
+    await setupCommand.parseAsync(['node', 'test']);
 
     // Assert
     expect(configModule.saveConfig).not.toHaveBeenCalled();

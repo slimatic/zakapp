@@ -23,8 +23,9 @@ import request from 'supertest';
 import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import app from '../app';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 describe('Login identifier resolution', () => {
   const stamp = Date.now();

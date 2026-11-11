@@ -22,6 +22,7 @@ import { CreateMethodologyConfig } from '@zakapp/shared';
 type UpdateMethodologyConfig = Partial<CreateMethodologyConfig>;
 import { AppError } from '../middleware/ErrorHandler';
 import { AuthenticatedRequest } from '../types';
+import { param } from '../utils/params';
 
 const methodologyService = new MethodologyConfigService();
 
@@ -84,7 +85,7 @@ export const getMethodology = async (req: AuthenticatedRequest, res: Response) =
       });
     }
 
-    const { id } = req.params;
+    const id = param(req.params.id);
     const methodology = await methodologyService.getMethodology(req.userId, id);
 
     res.json({
@@ -110,7 +111,7 @@ export const updateMethodology = async (req: AuthenticatedRequest, res: Response
       });
     }
 
-    const { id } = req.params;
+    const id = param(req.params.id);
     const updates: UpdateMethodologyConfig = req.body;
 
     const methodology = await methodologyService.updateMethodology(req.userId, id, updates);
@@ -163,7 +164,7 @@ export const deleteCustomMethodology = async (req: AuthenticatedRequest, res: Re
       });
     }
 
-    const { id } = req.params;
+    const id = param(req.params.id);
 
     await methodologyService.deleteCustomMethodology(req.userId, id);
 

@@ -25,8 +25,9 @@ import {
   AnalyticsMetric,
   AnalyticsMetricType
 } from '@zakapp/shared';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 /**
  * AnalyticsService - Business logic for analytics calculations with caching

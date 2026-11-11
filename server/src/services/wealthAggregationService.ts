@@ -25,6 +25,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '../utils/logger';
 import { EncryptionService } from './EncryptionService';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
 export interface WealthCalculation {
   totalZakatableWealth: number;
@@ -57,7 +58,7 @@ export class WealthAggregationService {
     prisma?: PrismaClient,
     encryptionService?: EncryptionService
   ) {
-    this.prisma = prisma || new PrismaClient();
+    this.prisma = prisma || new PrismaClient({ adapter: sqliteAdapter() });
     this.encryptionService = encryptionService || new EncryptionService();
   }
 

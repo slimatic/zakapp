@@ -87,16 +87,16 @@ describe('Keyboard Navigation Accessibility', () => {
       const settingsButton = screen.getByRole('button', { name: /settings/i });
 
       // Tab through navigation
-      userEvent.tab();
+      await userEvent.tab();
       expect(homeLink).toHaveFocus();
       
-      userEvent.tab();
+      await userEvent.tab();
       expect(assetsLink).toHaveFocus();
       
-      userEvent.tab();
+      await userEvent.tab();
       expect(calculatorLink).toHaveFocus();
       
-      userEvent.tab();
+      await userEvent.tab();
       expect(settingsButton).toHaveFocus();
     });
 
@@ -106,7 +106,7 @@ describe('Keyboard Navigation Accessibility', () => {
       const settingsButton = screen.getByRole('button', { name: /settings/i });
       settingsButton.focus();
 
-      userEvent.tab({ shift: true });
+      await userEvent.tab({ shift: true });
       expect(screen.getByRole('link', { name: /calculator/i })).toHaveFocus();
     });
   });
@@ -126,13 +126,13 @@ describe('Keyboard Navigation Accessibility', () => {
       const amountInput = screen.getByLabelText(/amount/i);
       const submitButton = screen.getByRole('button', { name: /submit/i });
 
-      userEvent.tab();
+      await userEvent.tab();
       expect(nameInput).toHaveFocus();
       
-      userEvent.tab();
+      await userEvent.tab();
       expect(amountInput).toHaveFocus();
       
-      userEvent.tab();
+      await userEvent.tab();
       expect(submitButton).toHaveFocus();
     });
 
@@ -150,7 +150,7 @@ describe('Keyboard Navigation Accessibility', () => {
       const input = container.querySelector('input');
       if (input) {
         input.focus();
-        userEvent.keyboard('{Enter}');
+        await userEvent.keyboard('{Enter}');
         expect(handleSubmit).toHaveBeenCalled();
       }
     });
@@ -172,12 +172,12 @@ describe('Keyboard Navigation Accessibility', () => {
 
       // Focus should remain within the modal elements when tabbing
       closeButton.focus();
-      userEvent.tab();
+      await userEvent.tab();
       // Accept either a modal button or body (JSDOM may not move focus reliably in this environment)
       const active = document.activeElement;
       expect([closeButton, actionButton].includes(active) || active === document.body).toBe(true);
 
-      userEvent.tab();
+      await userEvent.tab();
       const active2 = document.activeElement;
       expect([closeButton, actionButton].includes(active2) || active2 === document.body).toBe(true);
     });
@@ -187,7 +187,7 @@ describe('Keyboard Navigation Accessibility', () => {
       const onClose = jest.fn();
       render(<ModalMock isOpen={true} onClose={onClose} />);
       
-      userEvent.keyboard('{Escape}');
+      await userEvent.keyboard('{Escape}');
       expect(onClose).toHaveBeenCalled();
     });
   });
@@ -215,7 +215,7 @@ describe('Keyboard Navigation Accessibility', () => {
       skipLink.focus();
       // Simulate activating the skip link. JSDOM does not always move focus automatically on anchor activation,
       // so explicitly perform the focus action that would normally happen in the browser.
-      userEvent.click(skipLink);
+      await userEvent.click(skipLink);
       mainContent && mainContent.focus();
       
       expect(mainContent).toHaveFocus();
@@ -239,14 +239,14 @@ describe('Keyboard Navigation Accessibility', () => {
       
       // Arrow key navigation isn't implemented on bare buttons in JSDOM.
       // Use Tab navigation which behaves consistently across environments.
-      userEvent.tab();
+      await userEvent.tab();
       expect(options[1]).toHaveFocus();
       
-      userEvent.tab();
+      await userEvent.tab();
       expect(options[2]).toHaveFocus();
       
       // Tab backwards simulates ArrowUp behavior
-      userEvent.tab({ shift: true });
+      await userEvent.tab({ shift: true });
       expect(options[1]).toHaveFocus();
     });
 
@@ -265,10 +265,10 @@ describe('Keyboard Navigation Accessibility', () => {
       const option = screen.getByRole('menuitem');
       option.focus();
       
-      userEvent.keyboard('{Enter}');
+      await userEvent.keyboard('{Enter}');
       expect(handleClick).toHaveBeenCalledTimes(1);
       
-      userEvent.keyboard(' ');
+      await userEvent.keyboard(' ');
       expect(handleClick).toHaveBeenCalledTimes(2);
     });
   });
@@ -295,13 +295,13 @@ describe('Keyboard Navigation Accessibility', () => {
       tabs[0].focus();
       
       // Arrow navigation isn't implemented in JSDOM for bare elements. Use Tab navigation for determinism.
-      userEvent.tab();
+      await userEvent.tab();
       expect(tabs[1]).toHaveFocus();
       
-      userEvent.tab();
+      await userEvent.tab();
       expect(tabs[2]).toHaveFocus();
       
-      userEvent.tab({ shift: true });
+      await userEvent.tab({ shift: true });
       expect(tabs[1]).toHaveFocus();
     });
   });

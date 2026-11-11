@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { loadConfig, saveConfig, DEFAULT_CONFIG, UserConfig } from '../src/config';
+import { loadConfig, saveConfig, DEFAULT_CONFIG, UserConfig } from '../src/config.js';
 
 // Mock fs and os
 vi.mock('fs');

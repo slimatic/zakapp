@@ -29,6 +29,7 @@ import type {
   AuditTrailEntry,
   AuditEventType,
 } from '@zakapp/shared';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
 export class AuditTrailService {
   private logger = new Logger('AuditTrailService');
@@ -39,7 +40,7 @@ export class AuditTrailService {
     prisma?: PrismaClient,
     encryptionService?: EncryptionService
   ) {
-    this.prisma = prisma || new PrismaClient();
+    this.prisma = prisma || new PrismaClient({ adapter: sqliteAdapter() });
     this.encryptionService = encryptionService || new EncryptionService();
   }
 

@@ -57,9 +57,9 @@ const SaveCalculationSchema = z.object({
   nisabThreshold: z.number().min(0),
   zakatDue: z.number().min(0),
   zakatRate: z.number().min(0).max(100).optional().default(2.5),
-  assetBreakdown: z.record(z.unknown()),
+  assetBreakdown: z.record(z.string(), z.unknown()),
   notes: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   zakatYearStart: z.string().datetime(),
   zakatYearEnd: z.string().datetime(),
   methodologyConfigId: z.string().uuid().optional()
@@ -165,7 +165,7 @@ router.post('/',
           success: false,
           error: 'VALIDATION_ERROR',
           message: 'Invalid request data',
-          details: error.errors
+          details: error.issues
         });
       }
 
@@ -226,7 +226,7 @@ router.get('/',
           success: false,
           error: 'VALIDATION_ERROR',
           message: 'Invalid query parameters',
-          details: error.errors
+          details: error.issues
         });
       }
 
@@ -278,7 +278,7 @@ router.get('/trends/analysis',
           success: false,
           error: 'VALIDATION_ERROR',
           message: 'Invalid query parameters',
-          details: error.errors
+          details: error.issues
         });
       }
 
@@ -382,7 +382,7 @@ router.post('/compare',
           success: false,
           error: 'VALIDATION_ERROR',
           message: 'Invalid request data',
-          details: error.errors
+          details: error.issues
         });
       }
 
@@ -457,7 +457,7 @@ router.patch('/:id/notes',
           success: false,
           error: 'VALIDATION_ERROR',
           message: 'Invalid request data',
-          details: error.errors
+          details: error.issues
         });
       }
 

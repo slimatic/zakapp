@@ -22,8 +22,9 @@ import {
   ReminderPriority,
   ReminderStatus
 } from '@zakapp/shared';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 /**
  * ReminderEvent Model - Manages dashboard notifications
