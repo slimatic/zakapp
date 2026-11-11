@@ -397,12 +397,14 @@ export const Dashboard: React.FC = () => {
         ? recordedZakat
         : (calculation?.zakatDue ?? null);
 
-  // Total paid against the current obligation. Extracted from an inline
-  // `payments.reduce(...)` that each render re-computed.
-  const paymentsTotal = useMemo(
-    () => payments.reduce((sum, p) => sum + (p.amount || 0), 0),
-    [payments]
-  );
+  // Total paid against the CURRENT obligation. Summing every payment ever made
+  // let last year's sadaqah suppress this year's "pay zakat" nudge.
+  const paymentsTotal = useMemo(() => {
+    const scoped = activeRecord
+      ? payments.filter((p) => p.snapshotId === activeRecord.id)
+      : payments;
+    return scoped.reduce((sum, p) => sum + (p.amount || 0), 0);
+  }, [payments, activeRecord]);
 
   // Hijri year for the hero note, when the record carries one.
   const hijriYear = useMemo(() => {
@@ -438,8 +440,11 @@ export const Dashboard: React.FC = () => {
   // Undefined until the threshold is known — the UI renders "nisab unknown"
   // rather than guessing a comparison against a fabricated 5,000.
   const nisabThreshold: number | null = nisabAmount ?? null;
+  // The chip must agree with the hero. It used to compare GROSS assets
+  // (including a car and a home the engine excludes) against nisab, so the page
+  // could say "Above nisab" next to "0.00 due". The engine already answers this.
   const aboveNisab: boolean | null =
-    nisabThreshold === null || heroState !== 'ready' ? null : totalWealth >= nisabThreshold;
+    heroState !== 'ready' || !calculation ? null : calculation.isZakatObligatory;
 
   // Loading state
   if (assetsLoading || recordsLoading || paymentsLoading) {

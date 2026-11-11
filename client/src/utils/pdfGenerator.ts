@@ -150,7 +150,7 @@ export function generateAnnualSummaryPDF(
 
     const paymentData = payments.map(payment => [
       format(new Date(payment.paymentDate), 'MMM d, yyyy'),
-      formatCategoryName(payment.recipientType),
+      formatCategoryName(payment.recipientCategory || 'general'),
       payment.recipientName || 'Anonymous',
       formatCurrency(payment.amount, currency),
       payment.notes || '-'
@@ -281,7 +281,7 @@ export function generatePaymentReceiptPDF(
     ['Receipt ID', payment.receiptReference || payment.id.slice(0, 8)],
     ['Payment Date', formatDualCalendar(payment.paymentDate)],
     ['Amount', formatCurrency(payment.amount, currency)],
-    ['Category', formatCategoryName(payment.recipientType)],
+    ['Category', formatCategoryName(payment.recipientCategory || 'general')],
     ['Recipient', payment.recipientName || 'Anonymous'],
     ['Payment Method', payment.paymentMethod || 'Unknown'],
     ['Year', `${snapshot.gregorianYear} (${snapshot.hijriYear} AH)`]

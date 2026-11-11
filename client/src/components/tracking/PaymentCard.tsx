@@ -176,6 +176,22 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
                     Edit
                   </button>
                 )}
+                {nisabYear && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={async () => {
+                      setMenuOpen(false);
+                      const { generatePaymentReceiptPDF } = await import('../../utils/pdfGenerator');
+                      const date = (typeof payment.paymentDate === 'string' ? payment.paymentDate : payment.paymentDate.toISOString()).slice(0, 10) || 'receipt';
+                      generatePaymentReceiptPDF(payment, nisabYear, payment.currency || 'USD')
+                        .save(`zakapp-receipt-${date}-${payment.id.slice(0, 8)}.pdf`);
+                    }}
+                    className="block w-full px-3 py-2 text-start text-sm text-foreground hover:bg-accent"
+                  >
+                    Receipt (PDF)
+                  </button>
+                )}
                 {onDelete && (
                   <button
                     type="button"
