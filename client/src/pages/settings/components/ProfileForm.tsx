@@ -17,6 +17,7 @@
 
 
 import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../../contexts/AuthContext';
 import { apiService } from '../../../services/api';
@@ -48,6 +49,7 @@ export const ProfileForm: React.FC = () => {
     const { reassessAssets } = useAssetRepository();
     const queryClient = useQueryClient();
     const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
+    const [resending, setResending] = useState(false);
 
     const [profileData, setProfileData] = useState<ProfileFormData>({
         username: user?.username || '',
@@ -303,8 +305,30 @@ export const ProfileForm: React.FC = () => {
                                     ✅ Verified
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-foreground/80">
-                                    ⚠️ Unverified - Please check your email
+                                <span className="flex flex-wrap items-center gap-2">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-foreground/80">
+                                        ⚠️ Unverified - Please check your email
+                                    </span>
+                                    {/* Verification was a dead end in-app: the badge told
+                                        the user to check an email that may never have been
+                                        sent, and only the login screen could resend it. */}
+                                    <button
+                                        type="button"
+                                        disabled={resending}
+                                        onClick={async () => {
+                                            setResending(true);
+                                            const res = await apiService.resendVerificationEmail(profileData.email);
+                                            setResending(false);
+                                            if (res.success) {
+                                                toast.success('Verification email sent. Check your inbox.');
+                                            } else {
+                                                toast.error(res.message || 'Could not send the verification email.');
+                                            }
+                                        }}
+                                        className="text-xs font-medium text-primary underline underline-offset-2 disabled:opacity-50"
+                                    >
+                                        {resending ? 'Sending…' : 'Resend email'}
+                                    </button>
                                 </span>
                             )}
                         </div>
