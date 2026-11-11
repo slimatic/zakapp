@@ -8,11 +8,12 @@ import { vi, type Mock, describe, it, expect, beforeAll, afterAll, beforeEach, a
 
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../../src/config/prismaAdapter';
 import app from '../../src/app';
 import { generateAccessToken } from '../../src/utils/jwt';
 import { createNisabYearRecordData, createFinalizedRecord } from '../helpers/nisabYearRecordFactory';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 describe('GET /api/nisab-year-records - Contract Tests', () => {
   let authToken: string;

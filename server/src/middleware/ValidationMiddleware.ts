@@ -105,7 +105,10 @@ export const handleValidationErrors = (
 export const validateSchema = (schema: z.ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      const validatedData = schema.parse(req.body);
+      // Express 5 leaves req.body undefined when the request has no body
+      // (express 4 + body-parser always set {}), which made body-shaped schemas
+      // fail with "Required" on GET routes.
+      const validatedData = schema.parse(req.body ?? {});
       req.body = validatedData; // Replace with validated data
       next();
     } catch (error) {

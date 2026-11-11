@@ -26,7 +26,7 @@
  */
 
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
-import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
+import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/client';
 import { ZodError } from 'zod';
 
 /**

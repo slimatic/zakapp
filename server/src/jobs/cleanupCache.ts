@@ -27,9 +27,10 @@
 
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '../utils/logger';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
 const logger = new Logger('CacheCleanup');
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 
 /**

@@ -1,5 +1,6 @@
 import { execSync } from 'child_process';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../src/config/prismaAdapter';
 import fs from 'fs';
 import path from 'path';
 
@@ -81,7 +82,7 @@ export default async function globalSetup() {
       // Temporarily set DATABASE_URL so PrismaClient connects to the test DB.
       const prevDbUrl = process.env.DATABASE_URL;
       process.env.DATABASE_URL = testDb;
-      const prisma = new PrismaClient();
+      const prisma = new PrismaClient({ adapter: sqliteAdapter(testDb) });
       try {
         // Use a raw query to set WAL mode. SQLite returns the selected journal mode
         // so use $queryRawUnsafe which allows a returned result. We ignore the result.

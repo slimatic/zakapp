@@ -12,13 +12,14 @@ import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import app from '../../src/app';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../../src/config/prismaAdapter';
 
 const EMAIL_A = `sess-a-${Date.now()}@example.com`;
 const EMAIL_B = `sess-b-${Date.now()}@example.com`;
 const PASSWORD = 'Password1!';
 
 describe('Integration: Durable session invalidation (#312)', () => {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ adapter: sqliteAdapter() });
   let userAId = '';
   let userBId = '';
 

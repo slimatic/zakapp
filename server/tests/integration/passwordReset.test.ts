@@ -16,12 +16,13 @@ import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import app from '../../src/app';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../../src/config/prismaAdapter';
 
 const TEST_EMAIL = `pwdreset-${Date.now()}@example.com`;
 const NEW_PASSWORD = 'NewStrong456!';
 
 describe('Integration: Password reset flow (#311)', () => {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ adapter: sqliteAdapter() });
   const OLD_PASSWORD = 'OldPass123!';
   let userId = '';
 

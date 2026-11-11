@@ -16,6 +16,12 @@ export default defineConfig({
     setupFiles: ['./test/setupEnv.ts'],
     globalSetup: ['./test/globalSetup.ts'],
     pool: 'forks',
+    // All 82 files share one SQLite file (DATABASE_URL=file:./test/test.db), so
+    // parallel files contend on the same writes: intermittent SQLITE_BUSY
+    // surfaced as an empty-message rejection, and the wall-clock perf budget
+    // measured under load. Serialize files; per-file DB isolation is the
+    // alternative if this gets too slow.
+    fileParallelism: false,
     testTimeout: 60000,
     hookTimeout: 60000,
     server: {

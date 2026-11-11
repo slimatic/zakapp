@@ -19,8 +19,9 @@ import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 import { getEncryptionKey } from '../config/security';
 import bcrypt from 'bcryptjs';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 export interface UpdateProfileDto {
   firstName?: string;

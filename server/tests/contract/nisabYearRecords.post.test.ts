@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
+import { sqliteAdapter } from '../../src/config/prismaAdapter';
 import app from '../../src/app';
 import { jwtService } from '../../src/services/JWTService';
 import { createNisabYearRecordData } from '../helpers/nisabYearRecordFactory';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: sqliteAdapter() });
 
 describe('POST /api/nisab-year-records - Contract Tests', () => {
   let authToken: string;

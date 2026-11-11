@@ -41,6 +41,7 @@ import type {
 } from '@zakapp/shared';
 import { HAWL_CONSTANTS, calculateHawlCompletionDate as hawlCompletionDate } from '@zakapp/shared';
 import { readEncryptedAmount, decryptNumericFields } from '../utils/encryptedNumbers';
+import { sqliteAdapter } from '../config/prismaAdapter';
 
 export class HawlTrackingService {
   private readonly HAWL_DURATION_DAYS = HAWL_CONSTANTS.DAYS_LUNAR; // Lunar year
@@ -57,7 +58,7 @@ export class HawlTrackingService {
     wealthAggregationService?: WealthAggregationService,
     nisabCalculationService?: NisabCalculationService
   ) {
-    this.prisma = prisma || new PrismaClient();
+    this.prisma = prisma || new PrismaClient({ adapter: sqliteAdapter() });
     this.wealthAggregationService = wealthAggregationService || new WealthAggregationService();
     this.nisabCalculationService = nisabCalculationService || new NisabCalculationService();
   }

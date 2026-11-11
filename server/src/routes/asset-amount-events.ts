@@ -20,6 +20,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../types';
 import { authenticate } from '../middleware/AuthMiddleware';
 import { AssetAmountEventService } from '../services/AssetAmountEventService';
+import { param } from '../utils/params';
 
 const router = express.Router();
 
@@ -30,7 +31,7 @@ const router = express.Router();
 router.get('/:assetId/history', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { assetId } = req.params;
+    const assetId = param(req.params.assetId);
     const { startDate, endDate, eventType, limit } = req.query;
 
     const eventService = new AssetAmountEventService();
@@ -63,7 +64,7 @@ router.get('/:assetId/history', authenticate, async (req: AuthenticatedRequest, 
 router.get('/:assetId/amount-at', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { assetId } = req.params;
+    const assetId = param(req.params.assetId);
     const { date } = req.query;
 
     if (!date) {
@@ -118,7 +119,7 @@ router.get('/:assetId/amount-at', authenticate, async (req: AuthenticatedRequest
 router.post('/:assetId/backport', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { assetId } = req.params;
+    const assetId = param(req.params.assetId);
     const { entries } = req.body;
 
     if (!entries || !Array.isArray(entries)) {
@@ -181,7 +182,7 @@ router.post('/:assetId/backport', authenticate, async (req: AuthenticatedRequest
 router.post('/:assetId/events', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { assetId } = req.params;
+    const assetId = param(req.params.assetId);
     const { eventType, amount, effectiveDate, description, source, metadata } = req.body;
 
     if (!eventType || amount === undefined || amount === null || !effectiveDate) {
@@ -226,7 +227,7 @@ router.post('/:assetId/events', authenticate, async (req: AuthenticatedRequest, 
 router.delete('/:assetId/events/:eventId', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { eventId } = req.params;
+    const eventId = param(req.params.eventId);
     const { reason } = req.body;
 
     if (!reason) {
