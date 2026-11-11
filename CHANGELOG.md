@@ -25,6 +25,13 @@
   Re-importing a file at the limit reported "0 imported"; a 30-row file against a 20-row
   limit silently kept 20.
 
+### Security
+
+- **Login, registration and password reset shared one rate-limit counter per IP.** Failed
+  logins could lock registration, and reset mail had no limit at all; each route now has
+  its own budget. Proxied deployments can set `TRUST_PROXY` so limits see client addresses
+  instead of one shared proxy address.
+
 ### Admin and docs
 
 - The admin "mark unrecoverable" remediation endpoint could never run: it was mounted

@@ -55,9 +55,12 @@ export const createRateLimit = (options: {
   windowMs: number;
   max: number;
   message?: string;
+  /** Namespace for the counter. Without it every limiter shares one bucket per IP. */
+  scope?: string;
 }) => {
+  const scope = options.scope || 'default';
   return (req: Request, res: Response, next: NextFunction) => {
-    const key = req.ip || 'unknown';
+    const key = `${scope}:${req.ip || 'unknown'}`;
     const now = Date.now();
     
     // Clean up expired entries
@@ -99,89 +102,30 @@ export const createRateLimit = (options: {
 };
 
 // Predefined rate limiters
-// Note: Using dynamic max value that can be overridden for specific tests
-export const registrationRateLimit = (req: Request, res: Response, next: NextFunction) => {
-  const key = req.ip || 'unknown';
-  const now = Date.now();
-  const windowMs = 15 * 60 * 1000; // 15 minutes
-  const max = registrationRateLimitMax;
-  
-  // Clean up expired entries
-  if (store[key] && now > store[key].resetTime) {
-    delete store[key];
-  }
-  
-  // Initialize or update rate limit data
-  if (!store[key]) {
-    store[key] = {
-      count: 1,
-      resetTime: now + windowMs
-    };
-  } else {
-    store[key].count++;
-  }
-  
-  // Check if rate limit exceeded
-  if (store[key].count > max) {
-    return res.status(429).json({
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: 'Too many registration attempts, please try again later',
-        retryAfter: Math.ceil((store[key].resetTime - now) / 1000)
-      }
-    });
-  }
-  
-  // Add rate limit headers
-  res.set({
-    'X-RateLimit-Limit': max.toString(),
-    'X-RateLimit-Remaining': Math.max(0, max - store[key].count).toString(),
-    'X-RateLimit-Reset': new Date(store[key].resetTime).toISOString()
-  });
-  
-  next();
-};
+// Note: Using dynamic max values that can be overridden for specific tests.
+// Each limiter gets its own scope: login and registration used to share a
+// counter keyed only by IP, so failed logins consumed the registration budget.
+const WINDOW_MS = 15 * 60 * 1000;
 
-export const loginRateLimit = (req: Request, res: Response, next: NextFunction) => {
-  const key = req.ip || 'unknown';
-  const now = Date.now();
-  const windowMs = 15 * 60 * 1000; // 15 minutes
-  const max = loginRateLimitMax;
-  
-  // Clean up expired entries
-  if (store[key] && now > store[key].resetTime) {
-    delete store[key];
-  }
-  
-  // Initialize or update rate limit data
-  if (!store[key]) {
-    store[key] = {
-      count: 1,
-      resetTime: now + windowMs
-    };
-  } else {
-    store[key].count++;
-  }
-  
-  // Check if rate limit exceeded
-  if (store[key].count > max) {
-    return res.status(429).json({
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: 'Too many login attempts, please try again later',
-        retryAfter: Math.ceil((store[key].resetTime - now) / 1000)
-      }
-    });
-  }
-  
-  // Add rate limit headers
-  res.set({
-    'X-RateLimit-Limit': max.toString(),
-    'X-RateLimit-Remaining': Math.max(0, max - store[key].count).toString(),
-    'X-RateLimit-Reset': new Date(store[key].resetTime).toISOString()
-  });
-  
-  next();
-};
+export const registrationRateLimit = (req: Request, res: Response, next: NextFunction) =>
+  createRateLimit({
+    windowMs: WINDOW_MS,
+    max: registrationRateLimitMax,
+    scope: 'register',
+    message: 'Too many registration attempts, please try again later'
+  })(req, res, next);
+
+export const loginRateLimit = (req: Request, res: Response, next: NextFunction) =>
+  createRateLimit({
+    windowMs: WINDOW_MS,
+    max: loginRateLimitMax,
+    scope: 'login',
+    message: 'Too many login attempts, please try again later'
+  })(req, res, next);
+
+export const passwordResetRateLimit = createRateLimit({
+  windowMs: WINDOW_MS,
+  max: 5,
+  scope: 'password-reset',
+  message: 'Too many password reset requests, please try again later'
+});
