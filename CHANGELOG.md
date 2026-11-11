@@ -34,6 +34,18 @@
   points at CONTRIBUTING, AGENTS, testing and SECURITY.
 - `openapi.yaml` declared MIT in an AGPL-3.0 repository.
 
+### Tracking and reporting
+
+- **Payments now total per recipient** — count, amount and last date, following the
+  year filter and the search box. Names are matched case- and space-insensitively.
+- **A per-payment receipt PDF is reachable** from the payment card menu (generator and
+  tests already existed; nothing called them). Receipt and annual report now print the
+  recipient *category* where they used to print its type.
+- **The dashboard's "above nisab" chip now agrees with the zakat figure beside it**: it is
+  the engine's own answer instead of a comparison against gross assets.
+- **Paid-to-date is scoped to the current hawl.** Summing every payment ever made let last
+  year's payments suppress this year's "pay zakat" nudge.
+
 ## [1.1.5] — security hygiene
 
 *Date and Hijri line are set at the release cut.*

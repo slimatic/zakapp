@@ -149,7 +149,9 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
               />
               <StatItem
                 label={t('actions.statActiveRecord')}
-                value={activeNisabRecord?.year || 'N/A'}
+                // The record carries no `year` field, so this read always printed
+                // N/A while the hawl card beside it showed the year in progress.
+                value={String(activeNisabRecord?.hijriYear ?? activeNisabRecord?.gregorianYear ?? 'N/A')}
               />
               <StatItem
                 label={t('actions.statPaymentsMade')}
@@ -157,7 +159,9 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
               />
               <StatItem
                 label={t('actions.statTrackingStatus')}
-                value={t('actions.statusActive')}
+                // Was hard-coded to "Active", including on the empty dashboard
+                // this card exists to guide.
+                value={hasActiveRecord ? t('actions.statusActive') : '—'}
                 className="text-success font-semibold"
               />
             </div>
