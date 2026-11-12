@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.1] - 2026-11-12
+
+*2 Jumada al-Akhirah 1448.*
+
+- **A `DATABASE_URL` carrying `?connection_limit=1` opened an empty database beside the real
+  one.** better-sqlite3 treats the query string as part of the filename, so every query ran
+  against `prod.db?connection_limit=1` and login answered 500. The adapter now strips the
+  query, and the shipped compose no longer passes a Prisma 6 pooling option that Prisma 7
+  does not read.
+
 ## [1.2.0] - 2026-11-11
 
 *1 Jumada al-Akhirah 1448.*
