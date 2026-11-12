@@ -87,7 +87,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - DATABASE_URL=file:/app/server/prisma/data/prod.db?connection_limit=1
+      - DATABASE_URL=file:/app/server/prisma/data/prod.db
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - REFRESH_SECRET=${REFRESH_SECRET}
@@ -144,7 +144,7 @@ services:
     # auto-baseline as entrypoint.sh (schema-drift check first, fail closed).
     entrypoint: ["/bin/bash", "/migrate-only.sh"]
     environment:
-      - DATABASE_URL=file:/app/server/prisma/data/prod.db?connection_limit=1
+      - DATABASE_URL=file:/app/server/prisma/data/prod.db
     volumes:
       - backend_data:/app/server/prisma/data
     networks:
