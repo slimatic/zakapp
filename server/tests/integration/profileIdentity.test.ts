@@ -14,7 +14,10 @@ import { sqliteAdapter } from '../../src/config/prismaAdapter';
 
 const A_EMAIL = `identity-a-${Date.now()}@example.com`;
 const B_EMAIL = `identity-b-${Date.now()}@example.com`;
-const PASSWORD = 'StrongPass123!';
+// Generated, not a literal: the repo's credential guard rejects committed
+// credential-shaped literals, and a test password is still one.
+const makePassword = () => `Aa1!${Math.random().toString(36).slice(2, 10)}`;
+const PASSWORD = makePassword();
 
 describe('Integration: profile identity changes are collision-checked', () => {
   const prisma = new PrismaClient({ adapter: sqliteAdapter() });

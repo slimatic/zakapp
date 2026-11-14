@@ -13,8 +13,10 @@ import { PrismaClient } from '@prisma/client';
 import { sqliteAdapter } from '../../src/config/prismaAdapter';
 
 const EMAIL = `revoke-${Date.now()}@example.com`;
-const OLD_PASSWORD = 'OldPass123!';
-const NEW_PASSWORD = 'NewStrong456!';
+// Generated, not literals — see the credential guard in verify:source.
+const makePassword = () => `Aa1!${Math.random().toString(36).slice(2, 10)}`;
+const OLD_PASSWORD = makePassword();
+const NEW_PASSWORD = makePassword();
 
 describe('Integration: changing the password revokes issued access tokens', () => {
   const prisma = new PrismaClient({ adapter: sqliteAdapter() });
