@@ -141,7 +141,7 @@ export class AuthMiddleware {
       // access token keeps working until it expires.
       const account = await prisma.user.findUnique({
         where: { id: decoded.userId },
-        select: { isActive: true }
+        select: { isActive: true, passwordChangedAt: true }
       });
       if (!account || account.isActive === false) {
         res.status(403).json({
@@ -149,6 +149,27 @@ export class AuthMiddleware {
           error: {
             code: 'ACCOUNT_DEACTIVATED',
             message: 'This account has been deactivated.'
+          }
+        });
+        return;
+      }
+
+      // A password reset deactivates the refresh sessions, but it never reached
+      // this path: an access token issued before the change kept working until it
+      // expired. Reject anything minted before the change, with one second of
+      // grace: `iat` is second-precision, so a token minted right after the
+      // change can carry an earlier second than the stored millisecond.
+      const issuedAtSeconds = typeof decoded.iat === 'number' ? decoded.iat : 0;
+      if (
+        account.passwordChangedAt &&
+        issuedAtSeconds > 0 &&
+        issuedAtSeconds * 1000 < account.passwordChangedAt.getTime() - 1000
+      ) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'TOKEN_REVOKED',
+            message: 'Your password changed. Sign in again.'
           }
         });
         return;

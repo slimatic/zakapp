@@ -32,6 +32,8 @@ import { Input } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import { looksEncrypted } from '../../utils/encryption';
+import { getSupportedCurrencies } from '../../utils/formatters';
+import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 import { parseDecimalNumber } from '../../utils/parseDecimal';
 
 // Redefine schema locally
@@ -156,17 +158,22 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
   };
 
   // React Hook Form
+  const { currency: baseCurrency } = useDisplayCurrency();
   const {
     register,
     handleSubmit,
     setValue,
+    setError,
     watch,
     formState: { errors },
   } = useForm<PaymentRecordFormSchemaType>({
     resolver: zodResolver(paymentRecordFormSchema) as any,
     defaultValues: {
       amount: payment?.amount?.toString() || '',
-      currency: 'USD',
+      // The payment's own currency, not a hard-coded USD: a record made in IDR
+      // used to be stored as USD and then counted at face value in every total.
+      currency: payment?.currency || baseCurrency || 'USD',
+      exchangeRate: payment?.exchangeRate ?? 1,
       paymentDate: payment?.paymentDate ?
         (typeof payment.paymentDate === 'string' ? payment.paymentDate.slice(0, 10) : new Date(payment.paymentDate).toISOString().slice(0, 10)) :
         new Date().toISOString().slice(0, 10),
@@ -179,6 +186,9 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       recipientType: (payment?.recipientType as any) || 'individual',
     },
   });
+
+  const selectedCurrency = watch('currency');
+  const rateRequired = selectedCurrency !== baseCurrency;
 
   // Watch snapshotId
   const selectedSnapshotId = watch('snapshotId');
@@ -227,6 +237,12 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
 
 
   const onSubmitForm = async (data: PaymentRecordFormSchemaType) => {
+    const rate = Number(data.exchangeRate);
+    if (data.currency !== baseCurrency && (!Number.isFinite(rate) || rate <= 0)) {
+      setError('exchangeRate', { message: `Enter how many ${baseCurrency} one ${data.currency} was worth` });
+      return;
+    }
+
     setIsSubmitting(true);
     // Transform date to ISO
     const isoDate = new Date(data.paymentDate).toISOString();
@@ -236,7 +252,10 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       amount: parseDecimalNumber(data.amount),
       paymentDate: isoDate,
       recipientType: 'individual' as const,
-      status: 'recorded' as const,
+      // Same currency is exactly 1:1. An edit keeps the status it had — this used
+      // to demote a verified payment back to "recorded" on every save.
+      exchangeRate: data.currency === baseCurrency ? 1 : data.exchangeRate,
+      status: (payment?.status as any) || 'recorded',
     };
 
     try {
@@ -381,6 +400,51 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             {...register('paymentDate')}
           />
         </div>
+      </div>
+
+      {/* Currency and conversion. The stored rate is what every total applies;
+          without this field a payment made in IDR was recorded as USD. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <div>
+          <label htmlFor="currency" className="block text-sm font-medium text-foreground/80 mb-2">
+            Currency *
+          </label>
+          <select
+            id="currency"
+            {...register('currency', {
+              onChange: (e) => {
+                // A rate carried over from another currency is worse than an
+                // empty field: it looks filled in and is wrong. Reset it.
+                setValue('exchangeRate', (e.target.value === baseCurrency ? 1 : '') as any);
+              },
+            })}
+            className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {getSupportedCurrencies().map((code) => (
+              <option key={code} value={code}>{code}</option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground mt-1">
+            The currency you actually paid in.
+          </p>
+        </div>
+
+        {rateRequired && (
+          <div>
+            <Input
+              label={`Exchange rate to ${baseCurrency} *`}
+              type="text"
+              placeholder="0.0000"
+              className="text-end"
+              error={errors.exchangeRate?.message}
+              onFocus={(e) => e.target.select()}
+              {...register('exchangeRate', { valueAsNumber: true })}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              How many {baseCurrency} one {selectedCurrency} was worth on that date.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Recipient Category */}

@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { DEFAULT_LIMITS } from '../config/limits';
 import { revokeToken } from '../routes/auth/_shared';
 import { syncService } from '../services/SyncService';
+import { recordAdminEvent } from '../services/adminAuditService';
 import { logger } from '../utils/logger';
 
 interface AuthenticatedRequest extends Request {
@@ -178,6 +179,15 @@ export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
 
         await prisma.user.delete({ where: { id: id as string } });
 
+        await recordAdminEvent({
+            actorId: req.userId!,
+            eventType: 'ADMIN_USER_DELETED',
+            targetId: id as string,
+            summary: { email: user.email, username: user.username, userType: user.userType },
+            ipAddress: req.ip,
+            userAgent: req.headers?.['user-agent'] as string | undefined
+        });
+
         res.json({ success: true, message: 'User deleted successfully' });
     } catch (error) {
         console.error('Error deleting user:', error);
@@ -211,6 +221,15 @@ export const updateUserRole = async (req: AuthenticatedRequest, res: Response) =
             data: { userType: role }
         });
 
+        await recordAdminEvent({
+            actorId: currentAdminId!,
+            eventType: 'ADMIN_ROLE_CHANGED',
+            targetId: id as string,
+            summary: { email: user.email, from: user.userType, to: role },
+            ipAddress: req.ip,
+            userAgent: req.headers?.['user-agent'] as string | undefined
+        });
+
         res.json({ success: true, message: `User role updated to ${role}` });
     } catch (error) {
         console.error('Error updating user role:', error);
@@ -238,6 +257,24 @@ export const updateUserLimits = async (req: Request, res: Response) => {
         await prisma.user.update({
             where: { id: id as string },
             data
+        });
+
+        await recordAdminEvent({
+            actorId: (req as AuthenticatedRequest).userId || 'unknown',
+            eventType: 'ADMIN_LIMITS_CHANGED',
+            targetId: id as string,
+            summary: {
+                email: user.email,
+                from: {
+                    maxAssets: user.maxAssets,
+                    maxNisabRecords: user.maxNisabRecords,
+                    maxPayments: user.maxPayments,
+                    maxLiabilities: user.maxLiabilities
+                },
+                to: data
+            },
+            ipAddress: req.ip,
+            userAgent: req.headers?.['user-agent'] as string | undefined
         });
 
         res.json({ success: true, message: 'User limits updated successfully' });
@@ -292,6 +329,15 @@ export const updateUserStatus = async (req: AuthenticatedRequest, res: Response)
                 data: { isActive: false }
             });
         }
+
+        await recordAdminEvent({
+            actorId: req.userId!,
+            eventType: 'ADMIN_STATUS_CHANGED',
+            targetId: id as string,
+            summary: { email: user.email, from: user.isActive, to: isActive },
+            ipAddress: req.ip,
+            userAgent: req.headers?.['user-agent'] as string | undefined
+        });
 
         res.json({ success: true, message: `User ${isActive ? 'activated' : 'deactivated'} successfully` });
     } catch (error) {

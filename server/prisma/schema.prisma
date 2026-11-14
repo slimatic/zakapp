@@ -20,6 +20,9 @@ model User {
   userType       String   @default("USER") // USER, ADMIN_USER
   createdAt      DateTime @default(now())
   lastLoginAt    DateTime?
+  // Set whenever the password is changed or reset. Access tokens issued before
+  // this moment are rejected, so a stolen token cannot outlive a password reset.
+  passwordChangedAt DateTime?
   updatedAt      DateTime @updatedAt
   
   // Email Verification (Feature: Email Verification & SMTP)
