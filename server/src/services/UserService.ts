@@ -299,7 +299,7 @@ export class UserService {
         data: {
           passwordHash: hashedNewPassword,
           // Second-precision, matching JWT `iat` — see resetPassword.
-          passwordChangedAt: new Date(Math.floor(Date.now() / 1000) * 1000)
+          passwordChangedAt: new Date()
         }
       }),
       prisma.userSession.updateMany({

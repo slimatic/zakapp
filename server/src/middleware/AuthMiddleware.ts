@@ -156,12 +156,14 @@ export class AuthMiddleware {
 
       // A password reset deactivates the refresh sessions, but it never reached
       // this path: an access token issued before the change kept working until it
-      // expired. Reject anything minted before the stored second.
+      // expired. Reject anything minted before the change, with one second of
+      // grace: `iat` is second-precision, so a token minted right after the
+      // change can carry an earlier second than the stored millisecond.
       const issuedAtSeconds = typeof decoded.iat === 'number' ? decoded.iat : 0;
       if (
         account.passwordChangedAt &&
         issuedAtSeconds > 0 &&
-        issuedAtSeconds * 1000 < account.passwordChangedAt.getTime()
+        issuedAtSeconds * 1000 < account.passwordChangedAt.getTime() - 1000
       ) {
         res.status(401).json({
           success: false,

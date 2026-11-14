@@ -45,6 +45,10 @@ describe('Integration: changing the password revokes issued access tokens', () =
   });
 
   it('rejects that same token once the password has changed', async () => {
+    // `iat` is second-precision and the gate keeps a one-second grace, so the
+    // token must be older than that for this assertion to be deterministic.
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+
     const changed = await request(app)
       .post('/api/user/change-password')
       .set('Authorization', `Bearer ${token}`)

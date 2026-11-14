@@ -366,7 +366,7 @@ export class AuthService {
       where: { id: resetRecord.userId },
       data: {
         passwordHash: hashedPassword,
-        passwordChangedAt: new Date(Math.floor(Date.now() / 1000) * 1000)
+        passwordChangedAt: new Date()
       }
     });
 
