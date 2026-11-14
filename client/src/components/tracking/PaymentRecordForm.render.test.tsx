@@ -30,6 +30,10 @@ const renderWithClient = (ui: React.ReactElement) => {
 import { vi } from 'vitest';
 
 // Mock the hooks
+vi.mock('../../hooks/useDisplayCurrency', () => ({
+  useDisplayCurrency: () => ({ currency: 'USD', formatCurrency: (n: number) => String(n) }),
+}));
+
 vi.mock('../../hooks/usePaymentRepository', () => ({
   usePaymentRepository: () => ({
     payments: [],
