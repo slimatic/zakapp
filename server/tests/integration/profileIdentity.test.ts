@@ -77,4 +77,28 @@ describe('Integration: profile identity changes are collision-checked', () => {
     const row = await prisma.user.findUnique({ where: { email: next } });
     expect(row).not.toBeNull();
   });
+
+  it('refuses an address listed in ADMIN_EMAILS, case-insensitively', async () => {
+    const reserved = `ops-${Date.now()}@example.com`;
+    process.env.ADMIN_EMAILS = reserved;
+
+    const res = await request(app)
+      .put('/api/user/profile')
+      .set('Authorization', `Bearer ${tokenB}`)
+      .send({ email: reserved.toUpperCase() });
+
+    expect(res.status).not.toBe(200);
+    delete process.env.ADMIN_EMAILS;
+  });
+
+  it('cannot overwrite the vault salt through the profile blob', async () => {
+    const res = await request(app)
+      .put('/api/user/profile')
+      .set('Authorization', `Bearer ${tokenB}`)
+      .send({ salt: 'attacker-chosen-salt', firstName: 'Beta' });
+
+    expect(res.status).toBe(200);
+    // The merge is whitelisted; an unknown key must not reach the encrypted blob.
+    expect(res.body.data.salt).toBeUndefined();
+  });
 });

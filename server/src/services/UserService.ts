@@ -128,11 +128,15 @@ export class UserService {
       // Decrypt current profile
       const currentProfile = user.profile ? await EncryptionService.decryptObject<{ [key: string]: unknown }>(user.profile, getEncryptionKey()) : {};
 
-      // Merge update data with current profile
-      // We keep email/username in profile blob too for redundancy/completeness if desired, 
-      // or we can remove them. The frontend sends them in updateData.
-      // Let's keep the full updateData in the encrypted blob for now to matching existing behavior.
-      const updatedProfile = { ...currentProfile, ...updateData };
+      // Merge only the profile fields this endpoint owns. `updateData` is the raw
+      // request body: merging it wholesale let a caller write `salt` (the client
+      // derives its vault key from `profile.salt`, so overwriting it makes the
+      // vault undecryptable) or any other key into the encrypted blob.
+      const profileFields: UpdateProfileDto = {};
+      for (const key of ['firstName', 'lastName', 'timezone', 'currency'] as const) {
+        if ((updateData as any)[key] !== undefined) (profileFields as any)[key] = (updateData as any)[key];
+      }
+      const updatedProfile = { ...currentProfile, ...profileFields };
 
       // Encrypt updated profile
       const encryptedProfile = await EncryptionService.encryptObject(updatedProfile, getEncryptionKey());
@@ -153,6 +157,17 @@ export class UserService {
             select: { id: true }
           });
           if (clash) throw new Error('That email address is already in use');
+
+          // `ADMIN_EMAILS` is an allowlist of addresses, not of user rows. Claiming
+          // one of those addresses through this endpoint would grant admin without
+          // any user ever registering it.
+          const adminEmails = (process.env.ADMIN_EMAILS || '')
+            .split(',')
+            .map((entry) => entry.trim().toLowerCase())
+            .filter(Boolean);
+          if (adminEmails.includes(normalized)) {
+            throw new Error('That address is reserved');
+          }
 
           const token = crypto.randomBytes(32).toString('hex');
           const sent = await emailService.sendVerificationEmail(
