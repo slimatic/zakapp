@@ -60,6 +60,9 @@ describe('registration: a failed verification email must not report success', ()
 
     expect(res.status).toBe(201);
     expect(mockSendVerificationEmail).toHaveBeenCalled();
+    // The account is not usable yet: no token pair may be handed out.
+    expect(res.body?.data?.tokens).toBeNull();
+    expect(res.body?.data?.requiresVerification).toBe(true);
   });
 
   it('does NOT return 201 when the send returns false and verification is required', async () => {

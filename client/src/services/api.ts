@@ -41,6 +41,8 @@ export interface AuthResponse {
   success: boolean;
   accessToken?: string;
   refreshToken?: string;
+  /** Registration succeeded but the account needs email verification first. */
+  requiresVerification?: boolean;
   user?: {
     id: string;
     email: string;
@@ -278,11 +280,12 @@ class ApiService {
         };
       }
 
-      // Backend returns: { success, data: { tokens: { accessToken, refreshToken }, user } }
+      // Backend returns: { success, data: { tokens: { accessToken, refreshToken } | null, user, requiresVerification } }
       return {
         success: true,
         accessToken: result.data?.tokens?.accessToken,
         refreshToken: result.data?.tokens?.refreshToken,
+        requiresVerification: result.data?.requiresVerification === true,
         user: result.data?.user
       };
     } catch (error) {
