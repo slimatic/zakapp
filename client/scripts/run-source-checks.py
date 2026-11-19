@@ -15,6 +15,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 CHECKS = [
     "check-dead-classes.py",
+    "check-docs-index.py",
     "check-exit-codes.py",
     "check-i18n-keys.py",
     "check-logical-inset-translate.py",

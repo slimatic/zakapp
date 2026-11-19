@@ -46,7 +46,8 @@ ALTER TABLE "new_users" RENAME TO "users";
 
 ## Backup Requirements
 
-✅ **Backup script exists**: `scripts/backup-db.sh`
+✅ **Backup script exists**: `scripts/ops/backup-before-upgrade.sh` (written after this audit;
+the audit's `backup-db.sh` was never committed)
 
 **Features**:
 - SQLite `.backup` API (not raw file copy — handles concurrent writes safely)

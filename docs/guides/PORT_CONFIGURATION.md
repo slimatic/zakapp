@@ -245,4 +245,4 @@ docker compose down && docker compose up -d
 ✅ **CORS Handled**: Backend automatically allows the configured frontend port
 ✅ **API URL Automatic**: Frontend automatically connects to configured backend port
 
-For questions or issues, see: `docs/guides/PORT_CONFIGURATION_GUIDE.md`
+For questions or issues, see: `docs/troubleshooting-faq.md`
