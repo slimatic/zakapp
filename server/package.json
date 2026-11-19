@@ -104,7 +104,8 @@
   "overrides": {
     "uuid": "^14.0.0",
     "qs": "^6.16.0",
-    "undici": "^7.29.1"
+    "undici": "^7.29.1",
+    "minimatch": "^11.0.1"
   },
   "allowScripts": {
     "better-sqlite3@12.11.1": true

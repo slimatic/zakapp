@@ -47,5 +47,8 @@
     "@zakapp/shared": "file:shared",
     "prisma": "7.10.1",
     "js-sha256": "^1.0.0"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
   }
 }

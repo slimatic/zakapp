@@ -155,7 +155,8 @@
       "ws": "^8.21.3",
       "ajv": "^8.20.0"
     },
-    "postcss-selector-parser": "^6.1.5"
+    "postcss-selector-parser": "^6.1.5",
+    "minimatch": "^11.0.1"
   },
   "license": "AGPL-3.0-or-later"
 }
