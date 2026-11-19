@@ -22,8 +22,17 @@ the one outside it is correct.
 | `project-structure.md`, `architecture/architecture.md` | `AGENTS.md` (repository map), `docs/ARCHITECTURE.md` |
 | `reports/DEVELOPER_ONBOARDING.md`, `reports/DEVELOPMENT.md`, `reports/DEVELOPMENT_SETUP.md` | `CONTRIBUTING.md`, `AGENTS.md`, `docs/testing.md` |
 | `FAQ.md` | `docs/troubleshooting-faq.md` |
-| `usability-test-scenarios.md` | `docs/manual-testing/` |
+| `usability-test-scenarios.md` | `superseded/testing/` (manual), `docs/testing.md` (automated) |
 | `tracking-user-guide.md` | `docs/user-guide/` |
+| `guides/MANUAL_TESTING_GUIDE.md`, `manual-testing/` | `docs/testing.md`; per-feature checklists no longer maintained |
+| `guides/PHASE2_PRODUCTION_SETUP_GUIDE.md`, `guides/PORT_CONFIGURATION_GUIDE.md` | `docs/deployment-guide.md`, `docs/guides/PORT_CONFIGURATION.md` |
+| `release-cycle.md` | `docs/RELEASE-CADENCE.md` |
+| `zakat-methodologies-implementation-summary.md` | `docs/methodology-guide.md` |
+| `api/calculations.md`, `api/calendar.md` | `docs/api/api-specification.md`, `docs/dev/calendar-system.md` |
+| `roadmap.md`, `development-plan.md`, `tasks.md` | `ROADMAP.md` |
+| `accessibility.md` | `docs/ARCHITECTURE.md` § Accessibility |
+| `guides/CLOUDFLARE_TUNNEL_QUICK.md` | `docs/guides/CLOUDFLARE_TUNNEL_SETUP.md` (quick path) |
+| `reports/*.md`, `completion-reports/*` | `CHANGELOG.md`, `ROADMAP.md` |
 
 ## `plans/`, `reports/`, `performance/` — completed work
 

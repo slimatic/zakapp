@@ -359,10 +359,15 @@ export class AuthService {
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-    // Update user password
+    // Update password and mark the moment, in one write. `passwordChangedAt` is
+    // rounded to the second because JWT `iat` is second-precision: a token minted
+    // immediately after this reset must not look older than the reset.
     await prisma.user.update({
       where: { id: resetRecord.userId },
-      data: { passwordHash: hashedPassword }
+      data: {
+        passwordHash: hashedPassword,
+        passwordChangedAt: new Date()
+      }
     });
 
     // Mark reset token as used

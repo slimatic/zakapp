@@ -161,9 +161,9 @@ what it *does*.
 | Flag works on desktop, phone still crashes | `chrome://flags` doesn't exist on mobile — use Option 2 |
 | Works on `localhost`, fails by IP from the same machine | Same rule applies to a LAN IP as to another device |
 | Login fine, then clipboard/geolocation/camera or the service worker fails too | Same root cause — those APIs are secure-context-gated as well |
-| `Sync Error` in the header from a non-localhost origin | CouchDB is not reachable from that origin; separate issue, see [FAQ](../FAQ.md) |
+| `Sync Error` in the header from a non-localhost origin | CouchDB is not reachable from that origin; separate issue, see [Troubleshooting & FAQ](../troubleshooting-faq.md) |
 
 ---
 
-*See also: [Troubleshooting Guide & FAQ](../troubleshooting-faq.md) · [FAQ](../FAQ.md) ·
+*See also: [Troubleshooting Guide & FAQ](../troubleshooting-faq.md) ·
 [Port Configuration](PORT_CONFIGURATION.md) · [Cloudflare Tunnel Setup](CLOUDFLARE_TUNNEL_SETUP.md)*

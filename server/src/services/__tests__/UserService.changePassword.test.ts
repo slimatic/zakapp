@@ -33,10 +33,18 @@ vi.mock('@prisma/client', () => ({
   },
 }));
 
-vi.mock('../../utils/logger', () => ({
-  default: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
-  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
-}));
+vi.mock('../../utils/logger', () => {
+  const stub = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
+  // SettingsService (reached through EmailService) constructs a Logger.
+  class Logger {
+    constructor(_name?: string) {}
+    info = stub.info;
+    warn = stub.warn;
+    error = stub.error;
+    debug = stub.debug;
+  }
+  return { default: stub, logger: stub, Logger };
+});
 
 const { UserService } = await import('../UserService');
 

@@ -363,6 +363,16 @@ export const authService = {
 
         if (!apiResult.success) throw new Error(apiResult.message);
 
+        // The account exists but cannot be used until the address is verified.
+        // Logging in here would leave a client session with no token behind it.
+        if (apiResult.requiresVerification || !apiResult.accessToken) {
+            const pending = new Error(
+                'Account created. Check your email to verify it before signing in.'
+            ) as Error & { code?: string };
+            pending.code = 'EMAIL_VERIFICATION_REQUIRED';
+            throw pending;
+        }
+
         // Store tokens
         if (apiResult.accessToken) localStorage.setItem('accessToken', apiResult.accessToken);
         if (apiResult.refreshToken) localStorage.setItem('refreshToken', apiResult.refreshToken);

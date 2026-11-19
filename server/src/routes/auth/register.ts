@@ -224,31 +224,39 @@ router.post('/register',
         return;
       }
 
-      // Generate tokens
-      const accessToken = jwtService.createAccessToken({
-        userId: user.id,
-        email: user.email,
-        role: 'user'
-      });
+      // Verification required means the account exists but is not usable yet.
+      // Minting a session here handed a fully working token pair to an unverified
+      // address — the gate was decorative at the cheapest entry point.
+      const verificationPending = settings.requireEmailVerification && !user.isVerified;
 
-      const refreshToken = jwtService.createRefreshToken(user.id);
-
-      // Persist the session (#312)
-      try {
-        await getPrismaClient().userSession.create({
-          data: {
-            userId: user.id,
-            accessToken,
-            refreshToken,
-            ipAddress: req.ip || null,
-            userAgent: (req.headers['user-agent'] as string) || null,
-            issuedAt: new Date(),
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            isActive: true
-          }
+      let accessToken: string | null = null;
+      let refreshToken: string | null = null;
+      if (!verificationPending) {
+        accessToken = jwtService.createAccessToken({
+          userId: user.id,
+          email: user.email,
+          role: 'user'
         });
-      } catch (sessionErr) {
-        logger.error('Failed to persist session on register (non-fatal):', sessionErr);
+
+        refreshToken = jwtService.createRefreshToken(user.id);
+
+        // Persist the session (#312)
+        try {
+          await getPrismaClient().userSession.create({
+            data: {
+              userId: user.id,
+              accessToken,
+              refreshToken,
+              ipAddress: req.ip || null,
+              userAgent: (req.headers['user-agent'] as string) || null,
+              issuedAt: new Date(),
+              expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+              isActive: true
+            }
+          });
+        } catch (sessionErr) {
+          logger.error('Failed to persist session on register (non-fatal):', sessionErr);
+        }
       }
 
       // Decrypt profile data
@@ -291,10 +299,11 @@ router.post('/register',
             maxPayments: user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS,
             maxLiabilities: (user as any).maxLiabilities ?? DEFAULT_LIMITS.MAX_LIABILITIES
           },
-          tokens: {
+          tokens: accessToken && refreshToken ? {
             accessToken,
             refreshToken
-          }
+          } : null,
+          requiresVerification: verificationPending
         },
         meta: {
           timestamp: new Date().toISOString(),

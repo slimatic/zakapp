@@ -546,7 +546,6 @@ if (record.status === 'FINALIZED' || record.status === 'UNLOCKED') {
 ## Related Documentation
 
 - [Zakat Calculation Methodologies](./zakat.md)
-- [Calendar API (Hijri Conversions)](./calendar.md)
 - [User Guide: Managing Nisab Year Records](../user-guide/nisab-year-records.md)
 - OpenAPI Specification
 

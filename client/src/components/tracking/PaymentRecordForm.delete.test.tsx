@@ -25,6 +25,10 @@ import { vi } from 'vitest';
 // Mock hooks used by the component
 const mockRemovePayment = vi.fn();
 
+vi.mock('../../hooks/useDisplayCurrency', () => ({
+  useDisplayCurrency: () => ({ currency: 'USD', formatCurrency: (n: number) => String(n) }),
+}));
+
 vi.mock('../../hooks/usePaymentRepository', () => ({
   usePaymentRepository: () => ({
     payments: [],

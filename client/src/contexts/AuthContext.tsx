@@ -201,10 +201,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return true;
     } catch (error) {
       logger.error('REGISTRATION ERROR:', error);
-      toast.error('Registration failed: ' + (error instanceof Error ? error.message : String(error)));
+      // The verification-pending path is a success the UI must explain, not a
+      // red "registration failed" banner.
+      const code = (error as { code?: string })?.code;
+      if (code === 'EMAIL_VERIFICATION_REQUIRED') {
+        toast.success(error instanceof Error ? error.message : 'Check your email to verify your account.', { duration: 10000 });
+      } else {
+        toast.error('Registration failed: ' + (error instanceof Error ? error.message : String(error)));
+      }
       dispatch({
         type: 'LOGIN_FAILURE',
-        payload: error instanceof Error ? error.message : 'Registration failed'
+        payload: error instanceof Error ? error.message : 'Registration failed',
+        code
       });
       return false;
     }

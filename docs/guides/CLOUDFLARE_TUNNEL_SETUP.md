@@ -1,4 +1,17 @@
-# Cloudflare Tunnel Setup Guide for ZakApp
+# Cloudflare Tunnel Setup
+
+## Quick path (10 minutes)
+
+1. In `server/.env`, list every hostname you will serve:
+   `ALLOWED_ORIGINS=https://app.yourdomain.com,https://api.yourdomain.com`,
+   plus `FRONTEND_URL` and `BACKEND_URL`.
+2. Add a tunnel ingress rule per hostname in `~/.cloudflared/config.yml`, pointing
+   `app.` at the frontend container and `api.` at the backend.
+3. Route DNS with `cloudflared tunnel route dns <tunnel> app.yourdomain.com`.
+4. Run the tunnel, then verify `<YOUR_API_HOST>/health` returns 200 **and** a bogus login
+   returns 401 — a 200 health check alone does not prove the database answers.
+
+The rest of this document is the detailed version of those four steps.
 
 **Generated**: October 4, 2025  
 **Status**: 🌐 CLOUDFLARE TUNNEL READY
@@ -457,7 +470,7 @@ npm run build
 
 # Serve with correct routing
 serve -s build -l 3000
-# or use nginx with try_files (see PHASE2_PRODUCTION_SETUP_GUIDE.md)
+# or use nginx with try_files (see ../deployment-guide.md)
 ```
 
 ---

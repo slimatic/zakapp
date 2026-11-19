@@ -194,7 +194,11 @@ router.post('/refresh',
         where: { refreshToken, userId: decoded.userId }
       });
 
-      if (session && !session.isActive) {
+      // Fail closed on a missing row. `session && !session.isActive` treated a
+      // lookup MISS as success, and the row only holds the newest token — so a
+      // rotated refresh token verified, matched nothing, and was issued a fresh
+      // pair. Rows always exist from login/register.
+      if (!session || !session.isActive) {
         res.status(401).json({
           success: false,
           error: {

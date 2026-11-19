@@ -24,7 +24,7 @@ yarn-error.log*
 **/.env.production*
 **/.env.temp
 **/.env.test
-**/.env.bak
+**/.env.bak*
 **/config/env/.env.*
 
 # Build outputs

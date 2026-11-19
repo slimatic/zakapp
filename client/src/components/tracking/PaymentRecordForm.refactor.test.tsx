@@ -28,6 +28,10 @@ const mockAddPayment = vi.fn();
 const mockUpdatePayment = vi.fn();
 const mockRemovePayment = vi.fn();
 
+vi.mock('../../hooks/useDisplayCurrency', () => ({
+  useDisplayCurrency: () => ({ currency: 'USD', formatCurrency: (n: number) => String(n) }),
+}));
+
 vi.mock('../../hooks/usePaymentRepository', () => ({
     usePaymentRepository: () => ({
         payments: [],
@@ -113,6 +117,34 @@ describe('PaymentRecordForm Refactor', () => {
                 amount: 500,
                 recipientName: 'Charity ABC',
                 snapshotId: 'nr-1'
+            }));
+        });
+    });
+
+    it('stores the payment currency and its rate, not USD 1:1', async () => {
+        mockAddPayment.mockResolvedValue({ id: 'new-p2' });
+
+        renderWithClient(<PaymentRecordForm onSuccess={() => { }} />);
+
+        const nisabSelect = screen.getByRole('combobox', { name: /Nisab Year Record/i });
+        await userEvent.selectOptions(nisabSelect, 'nr-1');
+
+        await userEvent.type(screen.getByLabelText(/Amount Paid/i), '1000000');
+        await userEvent.type(screen.getByLabelText(/Recipient Name/i), 'Local Masjid');
+
+        // Choosing a non-base currency must reveal the rate field; without both,
+        // the record was stored as USD and its face value counted as dollars.
+        await userEvent.selectOptions(screen.getByLabelText(/^Currency \*$/i), 'IDR');
+        const rate = await screen.findByLabelText(/Exchange rate to USD/i);
+        await userEvent.type(rate, '0.000064');
+        expect((rate as HTMLInputElement).value).toBe('0.000064');
+
+        await userEvent.click(screen.getByRole('button', { name: /Save Payment/i }));
+
+        await waitFor(() => {
+            expect(mockAddPayment).toHaveBeenCalledWith(expect.objectContaining({
+                currency: 'IDR',
+                exchangeRate: 0.000064,
             }));
         });
     });

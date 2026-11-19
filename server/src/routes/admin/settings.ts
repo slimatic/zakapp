@@ -4,6 +4,7 @@ import { SettingsService } from '../../services/SettingsService';
 import { emailService } from '../../services/EmailService';
 import { asyncHandler } from '../../middleware/ErrorHandler';
 import { prisma } from '../../utils/prisma';
+import { recordAdminEvent } from '../../services/adminAuditService';
 
 const router = express.Router();
 
@@ -29,6 +30,16 @@ router.get('/', asyncHandler(async (req, res) => {
 router.put('/', asyncHandler(async (req, res) => {
     const updatedSettings = await SettingsService.updateSettings(req.body);
     const cleanSettings = await SettingsService.getSettings(); // Return clean/masked
+
+    // Record WHICH settings changed, never their values: this payload can carry
+    // SMTP credentials.
+    await recordAdminEvent({
+        actorId: (req as any).userId,
+        eventType: 'ADMIN_SETTINGS_CHANGED',
+        summary: { keys: Object.keys(req.body || {}) },
+        ipAddress: req.ip,
+        userAgent: req.headers?.['user-agent'] as string | undefined
+    });
 
     res.json({
         success: true,

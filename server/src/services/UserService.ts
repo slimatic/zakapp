@@ -16,7 +16,10 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import crypto from 'crypto';
 import { EncryptionService } from './EncryptionService';
+import { emailService } from './EmailService';
+import { logger } from '../utils/logger';
 import { getEncryptionKey } from '../config/security';
 import bcrypt from 'bcryptjs';
 import { sqliteAdapter } from '../config/prismaAdapter';
@@ -125,19 +128,86 @@ export class UserService {
       // Decrypt current profile
       const currentProfile = user.profile ? await EncryptionService.decryptObject<{ [key: string]: unknown }>(user.profile, getEncryptionKey()) : {};
 
-      // Merge update data with current profile
-      // We keep email/username in profile blob too for redundancy/completeness if desired, 
-      // or we can remove them. The frontend sends them in updateData.
-      // Let's keep the full updateData in the encrypted blob for now to matching existing behavior.
-      const updatedProfile = { ...currentProfile, ...updateData };
+      // Merge only the profile fields this endpoint owns. `updateData` is the raw
+      // request body: merging it wholesale let a caller write `salt` (the client
+      // derives its vault key from `profile.salt`, so overwriting it makes the
+      // vault undecryptable) or any other key into the encrypted blob.
+      const profileFields: UpdateProfileDto = {};
+      for (const key of ['firstName', 'lastName', 'timezone', 'currency'] as const) {
+        if ((updateData as any)[key] !== undefined) (profileFields as any)[key] = (updateData as any)[key];
+      }
+      const updatedProfile = { ...currentProfile, ...profileFields };
 
       // Encrypt updated profile
       const encryptedProfile = await EncryptionService.encryptObject(updatedProfile, getEncryptionKey());
 
       // Prepare root update data (only if provided)
       const rootUpdateData: any = { profile: encryptedProfile };
-      if (email) rootUpdateData.email = email;
-      if (username) rootUpdateData.username = username;
+
+      // An email change must be re-verified. Without this, a user could verify a
+      // throwaway address at registration and then switch to any unverified one
+      // while `isVerified` stayed true — the verification gate was decorative.
+      if (email) {
+        const normalized = String(email).trim().toLowerCase();
+        if (normalized !== user.email) {
+          // Login resolves one identifier against both columns, so a username
+          // equal to someone's email makes the match ambiguous.
+          const clash = await prisma.user.findFirst({
+            where: { id: { not: userId }, OR: [{ email: normalized }, { username: normalized }] },
+            select: { id: true }
+          });
+          if (clash) throw new Error('That email address is already in use');
+
+          // `ADMIN_EMAILS` is an allowlist of addresses, not of user rows. Claiming
+          // one of those addresses through this endpoint would grant admin without
+          // any user ever registering it.
+          const adminEmails = (process.env.ADMIN_EMAILS || '')
+            .split(',')
+            .map((entry) => entry.trim().toLowerCase())
+            .filter(Boolean);
+          if (adminEmails.includes(normalized)) {
+            throw new Error('That address is reserved');
+          }
+
+          const token = crypto.randomBytes(32).toString('hex');
+          const sent = await emailService.sendVerificationEmail(
+            normalized,
+            token,
+            (currentProfile.firstName as string) || undefined,
+            user.username || undefined
+          );
+
+          rootUpdateData.email = normalized;
+          if (sent) {
+            // The new address must be proven before it is trusted again.
+            rootUpdateData.isVerified = false;
+            rootUpdateData.verificationToken = token;
+            rootUpdateData.verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          } else {
+            // No mail transport (common on a self-hosted box). Refusing the change
+            // would make the address uneditable forever; marking it unverified would
+            // lock the owner out at next login with no way to receive the link. So
+            // the change applies and the previous verification stands — announced,
+            // not silent. A deployment that enforces verification has SMTP, so this
+            // branch means the send failed transiently, not that mail is absent.
+            logger.warn(
+              `Email change for ${userId} applied without re-verification: the verification email could not be sent`
+            );
+          }
+        }
+      }
+
+      if (username) {
+        const normalized = String(username).trim();
+        if (normalized !== user.username) {
+          const clash = await prisma.user.findFirst({
+            where: { id: { not: userId }, OR: [{ username: normalized }, { email: normalized.toLowerCase() }] },
+            select: { id: true }
+          });
+          if (clash) throw new Error('That username is already in use');
+          rootUpdateData.username = normalized;
+        }
+      }
 
       const updatedUser = await prisma.user.update({
         where: { id: userId },
@@ -241,7 +311,11 @@ export class UserService {
     await prisma.$transaction([
       prisma.user.update({
         where: { id: userId },
-        data: { passwordHash: hashedNewPassword }
+        data: {
+          passwordHash: hashedNewPassword,
+          // Second-precision, matching JWT `iat` — see resetPassword.
+          passwordChangedAt: new Date()
+        }
       }),
       prisma.userSession.updateMany({
         where: { userId },

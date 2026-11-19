@@ -47,3 +47,14 @@ The core logic resides in `client/src/core/calculations/`. It is built for:
 ZakApp can be deployed as:
 1. **Standalone PWA**: Hosting only the static files (e.g., GitHub Pages, Vercel).
 2. **Full Stack**: Using the provided Docker Compose setup for a private sync server.
+
+## 6. Accessibility
+
+- **Keyboard navigation** across every interactive element; no focus traps.
+- **Screen-reader support**, tested with NVDA, JAWS and VoiceOver; landmarks, headings and
+  ARIA attributes are used where the semantics are not already in the HTML.
+- **Contrast**: 4.5:1 for normal text, 3:1 for large text (WCAG 2.1 AA).
+- **Direction**: Arabic and Urdu render RTL through logical CSS properties; the source
+  checks assert both directions rather than assuming LTR.
+- Lighthouse accessibility 100/100 at the last audit. `client/scripts/check-responsive.py`
+  and `check-theme-a11y-rtl.py` measure overflow, contrast and touch targets on every run.
