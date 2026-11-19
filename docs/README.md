@@ -1,8 +1,9 @@
-# ZakApp Documentation Hub 📚
+# ZakApp Documentation
 
-Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic Zakat calculator.
+One index. Every live document is listed here, and `check-docs-index.py` fails the build if
+one is not reachable from this page or from the repository README.
 
-## 🧭 Which guide do I want?
+## Which guide do I want?
 
 Five documents describe deployment. Pick by what you are trying to do:
 
@@ -15,171 +16,85 @@ Five documents describe deployment. Pick by what you are trying to do:
 | Full reference: env vars, backups, rollback | [deployment-guide.md](deployment-guide.md) |
 
 For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md),
-[AGENTS.md](../AGENTS.md), and the [testing guide](testing.md).
+[AGENTS.md](../AGENTS.md), and [testing.md](testing.md).
 
-Historical records live in [release-notes/](release-notes/) — including the
-[v1.0 release-readiness audit](release-notes/v1.0-audit.md), kept as written.
+## Architecture and security
 
-## 🗂️ Documentation Structure
+- [ARCHITECTURE.md](ARCHITECTURE.md) — local-first model, encryption flow, stack, accessibility.
+- [ZERO_KNOWLEDGE_ARCHITECTURE.md](ZERO_KNOWLEDGE_ARCHITECTURE.md) — the threat model behind it.
+- [PUBLIC-PRIVATE-BOUNDARY.md](PUBLIC-PRIVATE-BOUNDARY.md) — what may never appear in this public repo.
+- [principles.md](principles.md) — the product principles the code is measured against.
+- [../SECURITY.md](../SECURITY.md) — the implemented security model and how to report a problem.
+- [../PRIVACY.md](../PRIVACY.md) — what is stored, where, and for how long.
 
-### 📖 Getting Started
+## Using the app
 
-**New to ZakApp?** Start here:
+- [user-guide/choosing-methodology.md](user-guide/choosing-methodology.md) — picking a school and what changes.
+- [user-guide/nisab-year-records.md](user-guide/nisab-year-records.md) — hawl, nisab, payments.
+- [user-guide/tracking.md](user-guide/tracking.md) — history, analytics, export.
+- [pwa-guide.md](pwa-guide.md) — install, offline behaviour, push and VAPID.
+- [CURRENCY-DISPLAY-RULE.md](CURRENCY-DISPLAY-RULE.md) — the one rule for formatting money.
+- [troubleshooting-faq.md](troubleshooting-faq.md) — runtime and operator breakage.
+- [../FAQs.md](../FAQs.md) — zakat and fiqh questions.
 
-1. **[Main README](../README.md)** - Project overview, quick start, and installation
-2. **[Contributing](../CONTRIBUTING.md)** - How to set up, build, test and open a PR
-3. **[AGENTS.md](../AGENTS.md)** - The live repository map and the commands CI runs
-4. **[Testing](testing.md)** - Test suites, databases and the checks that gate a merge
+## API
 
-### 🏗️ Architecture & Design
+- [api/openapi.yaml](api/openapi.yaml) — the REST contract.
+- [api/api-specification.md](api/api-specification.md) — narrative walkthrough: auth, assets, zakat, data.
+- [api/zakat.md](api/zakat.md) — worked `curl` example for `POST /api/zakat/calculate`.
+- [api/tracking.md](api/tracking.md) — `/api/tracking`, not yet in the OpenAPI file.
+- [api/nisab-year-records.md](api/nisab-year-records.md) — `/api/nisab-year-records`, not yet in the OpenAPI file.
 
-**Understanding the system:**
+## Operations
 
-- **[Repository map](../AGENTS.md)** - The five projects, where code lives, and the commands CI runs
-- **[API Specification](api/api-specification.md)** - Complete REST API documentation
-- **[Database Schema](../server/prisma/schema.prisma)** - Prisma database model
-- **[User Stories](user-stories.md)** - Feature requirements and user flows
-- **[Project Principles](principles.md)** - Development guidelines and philosophy
+- [deployment-guide.md](deployment-guide.md) — env, backups, rollback, reverse proxy.
+- [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) — every variable, both projects. The only env prose doc.
+- [UPGRADING.md](UPGRADING.md) — migrations, `P3005`, rollback.
+- [RELEASE-CADENCE.md](RELEASE-CADENCE.md) — lunar cadence and the release-day procedure.
+- [NGINX-PROXY-MANAGER.md](NGINX-PROXY-MANAGER.md) — running the stack behind a reverse proxy.
+- [guides/CLOUDFLARE_TUNNEL_SETUP.md](guides/CLOUDFLARE_TUNNEL_SETUP.md) — Cloudflare Tunnel, quick path first.
+- [guides/CI-CD-SETUP.md](guides/CI-CD-SETUP.md) — what the three workflows do.
+- [guides/PORT_CONFIGURATION.md](guides/PORT_CONFIGURATION.md) — ports, conflicts, LAN access.
+- [guides/DEVELOPMENT-NETWORK-ACCESS.md](guides/DEVELOPMENT-NETWORK-ACCESS.md) — reaching a dev server from a phone.
+- [guides/DATABASE_PORTABILITY_GUIDE.md](guides/DATABASE_PORTABILITY_GUIDE.md) — SQLite ↔ Postgres.
 
-### 🚀 Deployment & Operations
+## Development
 
-**Running ZakApp in production:**
+- [testing.md](testing.md) — suite layout, test database, how to run it.
+- [dev/calendar-system.md](dev/calendar-system.md) — Hijri conversion internals.
+- [user-stories.md](user-stories.md) — feature requirements and acceptance criteria.
+- [../AGENTS.md](../AGENTS.md) — repository map and the commands CI runs.
+- [../CONTRIBUTING.md](../CONTRIBUTING.md) — setup, workflow, PR rules.
 
-- **[Deployment Guide](deployment-guide.md)** - General deployment instructions
-- **[Production Setup Guide](guides/PHASE2_PRODUCTION_SETUP_GUIDE.md)** - Production deployment automation
-- **[Docker Guide](reports/DOCKER.md)** - Container deployment instructions
-- **[CI/CD Setup](guides/CI-CD-SETUP.md)** - Continuous integration/deployment configuration
-- **[Cloudflare Tunnel Setup](guides/CLOUDFLARE_TUNNEL_SETUP.md)** - Secure tunnel configuration
-- **[Cloudflare Tunnel Quick Start](guides/CLOUDFLARE_TUNNEL_QUICK.md)** - Quick Cloudflare setup
+## Fiqh research
 
-### 🔧 Configuration & Troubleshooting
+- [methodology-guide.md](methodology-guide.md) — how each madhhab is calculated.
+- [zakat-calculation-methodologies-research.md](zakat-calculation-methodologies-research.md) — the research behind the rule-sets.
+- [zakat-research-bibliography.md](zakat-research-bibliography.md) — the sources cited.
+- [plans/methodology-audit-2026-09-25.md](plans/methodology-audit-2026-09-25.md) — open fiqh decisions.
+- [plans/2026-09-04-madhab-ruling-transparency.md](plans/2026-09-04-madhab-ruling-transparency.md) — transparency plan.
+- [superpowers/specs/2026-09-04-madhab-ruling-transparency-design.md](superpowers/specs/2026-09-04-madhab-ruling-transparency-design.md) — its design.
 
-**Configuration and problem-solving:**
+## Project records
 
-- **[PWA Guide](pwa-guide.md)** - Installable app, offline support, push notifications, and self-host VAPID setup
-- **[Port Configuration Guide](guides/PORT_CONFIGURATION.md)** - Configure custom ports, resolve port conflicts, network access
-- **[Local Network Access](guides/DEVELOPMENT-NETWORK-ACCESS.md)** - Access your dev server from another device; fixes the Web Crypto `importKey` crash on HTTP/IP origins
-- **[Port Configuration Guide (Legacy)](guides/PORT_CONFIGURATION_GUIDE.md)** - Configure custom ports, fix "Failed to fetch" errors
-- **[Database Management](reports/DATABASE_MANAGEMENT.md)** - Database cleanup, reset, backup, and troubleshooting
-- **[Database Portability Guide](guides/DATABASE_PORTABILITY_GUIDE.md)** - Database migration and portability
-- **[Manual Testing Guide](guides/MANUAL_TESTING_GUIDE.md)** - Manual testing procedures
+- [../ROADMAP.md](../ROADMAP.md) — the single roadmap: shipped and open decisions.
+- [../CHANGELOG.md](../CHANGELOG.md) — what changed in each release.
+- [release-notes/v1.0.md](release-notes/v1.0.md), [release-notes/v1.0-audit.md](release-notes/v1.0-audit.md) — frozen release records.
+- [audit/migration-safety-v0.11.0.md](audit/migration-safety-v0.11.0.md) — the `P3005` evidence `UPGRADING.md` cites.
+- [agent-scaffolding-retired.md](agent-scaffolding-retired.md) — what the retired planning trees held.
+- [archive/README.md](archive/README.md) — superseded documents, kept for provenance only.
 
-### 🔐 Security
+## Contributing to documentation
 
-**Security best practices:**
+1. **One home per topic.** If a document already covers it, extend that document.
+2. **List it here.** A live document that is not reachable from this index fails CI.
+3. **Archive, don't accumulate.** Superseded work moves to `docs/archive/superseded/` with a row in
+   [archive/README.md](archive/README.md); git history is the record.
+4. **Keep it short and specific.** A paragraph and an example beat a page of prose.
+5. **Quote no secrets.** Examples use placeholders; `.env.example` is the only template that
+   carries values, and they are fake.
 
-- **[Security Policy](../SECURITY.md)** - The implemented security model, threat boundaries and reporting
+## Need help?
 
-### 📊 Project Status & Planning
-
-**Current state and roadmap:**
-
-- **[Final Implementation Report](reports/FINAL_IMPLEMENTATION_REPORT.md)** - Complete 500+ line report on all 53 features
-- **[Development Plan](development-plan.md)** - Detailed development roadmap
-- **[Roadmap](roadmap.md)** - High-level milestones and timeline
-- **[Tasks](tasks.md)** - Current task tracking
-- **[Changelog](../CHANGELOG.md)** - Version history and changes
-
-### 📚 API Documentation
-
-**Detailed API references:**
-
-- **[Zakat API](api/zakat.md)** - Zakat calculation endpoints
-- **[Calculations API](api/calculations.md)** - Calculation history endpoints
-- **[Calendar API](api/calendar.md)** - Hijri calendar and date conversion
-- **[Tracking API](api/tracking.md)** - Snapshot and tracking features
-
-### 🕌 Islamic Zakat Research
-
-**Islamic compliance and methodologies:**
-
-- **[Methodology Guide](methodology-guide.md)** - Detailed explanation of calculation methodologies
-- **[Zakat Methodologies Research](zakat-calculation-methodologies-research.md)** - Research on different calculation approaches
-- **[Zakat Implementation Summary](zakat-methodologies-implementation-summary.md)** - Implementation details
-- **[Research Bibliography](zakat-research-bibliography.md)** - References and sources
-
-### 🧪 Testing
-
-**Quality assurance:**
-
-- **[Manual Testing Guide](guides/MANUAL_TESTING_GUIDE.md)** - Manual testing procedures
-- **[Test Suite](../server/tests/)** - 175+ automated tests
-- **[Performance Tests](../performance-tests/)** - API load testing results
-
-### 📦 Historical Documentation
-
-- **[Retired agent scaffolding](agent-scaffolding-retired.md)** - What the ralphy/ralph/sisyphus planning trees held, and the three conclusions worth keeping
-
-**Archive of completed work:** [docs/archive/](archive/README.md) — superseded and
-completed-work documents, indexed by what replaced them.
-
-### 🔍 Code Quality & Analysis
-
-**Repository maintenance:**
-
-- **[Code Analysis Findings](reports/CODE_ANALYSIS_FINDINGS.md)** - Comprehensive code analysis
-- **[Cleanup Summary](reports/CLEANUP_SUMMARY.md)** - Documentation cleanup tracking
-- **[Before/After Visualization](reports/BEFORE_AFTER_VISUALIZATION.md)** - Visual impact of cleanup
-
----
-
-## 🎯 Quick Links by Role
-
-### For New Contributors
-1. Start with [Main README](../README.md)
-2. Read [Contributing](../CONTRIBUTING.md)
-3. Set up the environment: [AGENTS.md](../AGENTS.md)
-4. Run the tests: [Testing](testing.md)
-5. Understand the layout: [AGENTS.md](../AGENTS.md#repository-layout)
-
-### For Backend Developers
-1. Review [API Specification](api/api-specification.md)
-2. Study [Database Schema](../server/prisma/schema.prisma)
-3. Check [Security Policy](../SECURITY.md)
-4. Understand [Islamic Zakat methodologies](methodology-guide.md)
-5. Run [Tests](../server/tests/)
-
-### For Frontend Developers
-1. See [Component Library](../client/src/components/)
-2. Review [API Specification](api/api-specification.md)
-3. Check [User Stories](user-stories.md)
-4. Study Islamic UI requirements in [Principles](principles.md)
-
-### For DevOps/SRE
-1. Read [Deployment Guide](deployment-guide.md)
-2. Review [Production Setup](guides/PHASE2_PRODUCTION_SETUP_GUIDE.md)
-3. Configure [CI/CD](guides/CI-CD-SETUP.md)
-4. Set up [Cloudflare Tunnels](guides/CLOUDFLARE_TUNNEL_SETUP.md)
-5. Learn [Database Management](reports/DATABASE_MANAGEMENT.md)
-
-### For QA/Testing
-1. Follow [Manual Testing Guide](guides/MANUAL_TESTING_GUIDE.md)
-2. Run automated [Test Suite](../server/tests/)
-3. Review [Performance Tests](../performance-tests/)
-4. Check [User Stories](user-stories.md) for acceptance criteria
-
----
-
-## 📝 Contributing to Documentation
-
-When adding or updating documentation:
-
-1. **Keep it organized** - Use the structure above
-2. **Link related docs** - Add navigation between related documents
-3. **Update this index** - Add new docs to the appropriate section
-4. **Archive old docs** - Historical docs are recorded in git history rather than kept as live files
-5. **Use clear titles** - Make it easy to find information
-6. **Add examples** - Include code samples and use cases
-
----
-
-## 🆘 Need Help?
-
-- **Issues**: [GitHub Issues](https://github.com/slimatic/zakapp/issues)
-- **Questions**: Review [FAQ sections](../README.md#-troubleshooting) in main README
-- **Security**: See [Security Policy](../SECURITY.md)
-
----
-
-**Last Updated**: 2025-10-13  
-**Maintained By**: ZakApp Contributors
+- Issues: <https://github.com/slimatic/zakapp/issues>
+- Security: [../SECURITY.md](../SECURITY.md)

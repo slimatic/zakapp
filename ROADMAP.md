@@ -93,7 +93,7 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [x] **Data Safety**: Remove `db push --accept-data-loss` fallback; migration-safety regression test gates every PR (#326).
 - [x] **Password Reset**: Real token flow (crypto-random, persisted, emailed) + confirm-reset endpoint (#311, #327).
 - [x] **Session Invalidation**: Durable `UserSession` persistence; restart-surviving refresh rejection; real logout (#312, #328).
-- [x] **Release Cadence**: Hijri moon-cycle release process documented (`docs/release-cycle.md`).
+- [x] **Release Cadence**: Hijri moon-cycle release process documented (`docs/RELEASE-CADENCE.md`).
 
 ## Phase 8.6: v0.14.0 Cycle — Security Sweep, Dark Mode & Blue-Ocean Start (Sep 2026)
 *Goal: zero known prod-dependency vulnerabilities, dark mode, and the first competitive-research quick win.*

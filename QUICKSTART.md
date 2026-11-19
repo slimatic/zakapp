@@ -42,7 +42,7 @@ If you prefer to do it manually:
 git clone https://github.com/slimatic/zakapp.git && cd zakapp
 
 # 2. Copy and edit the configuration
-cp .env.docker.example .env
+cp .env.example .env
 # Edit .env and replace all REPLACE_* values with generated secrets
 
 # 3. Deploy

@@ -180,5 +180,5 @@ If tests reveal performance issues:
 ## Documentation
 
 - API Specification: `../api-specification.md`
-- Implementation Reports: `../FINAL_IMPLEMENTATION_REPORT.md`
+- Implementation reports: see `docs/archive/superseded/reports/`
 - Performance Plan: `../PERFORMANCE_DEPLOYMENT_EXECUTION.md`
