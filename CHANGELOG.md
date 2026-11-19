@@ -1,5 +1,42 @@
 # Changelog
 
+## [1.3.0] - 2026-11-19
+
+*9 Jumada al-Akhirah 1448.*
+
+### Payments
+
+- **A payment made in another currency can now record the rate it was converted at.** The
+  form reveals the rate field only when the currency differs from the account's, clears a
+  carried-over rate when you switch, and refuses to save a foreign payment without one.
+  Every total — list, category, per-recipient, analytics, compliance, dashboard, reports
+  and the annual PDF — converts through the same rule.
+- Editing a `verified` payment no longer demotes it to `recorded`.
+
+### Security
+
+- An address listed in `ADMIN_EMAILS` is reserved at registration, before it can ever sign
+  in, and the check is case-insensitive. Previously the first person to register it held
+  admin until their address was verified.
+- Profile updates merge only the fields the endpoint owns, so a crafted body can no longer
+  write `salt` (or anything else) into the vault blob.
+- Access tokens issued before a password change are rejected; refresh fails closed when the
+  session row is gone instead of replaying a rotated token.
+- Registration returns no tokens while email verification is pending, and the client says
+  so instead of opening a session with nothing behind it.
+
+### Admin
+
+- Deleting, deactivating, promoting, changing limits or replacing SMTP settings now writes
+  an audit entry: who did it, to whom, before/after, IP and user agent. Settings record
+  which keys changed, never their values.
+
+### Documentation
+
+- 63 live documents → 38, one index, and a `verify:source` check that fails on an orphaned
+  page, a broken link or a path that does not exist. 22 scripts and 5 unimported component
+  trees deleted; three never-mounted server route modules removed.
+
 ## [1.2.1] - 2026-11-12
 
 *2 Jumada al-Akhirah 1448.*
