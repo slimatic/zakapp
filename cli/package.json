@@ -17,7 +17,7 @@
     "@zakapp/shared": "file:../shared",
     "chalk": "^6.0.1",
     "commander": "^15.1.0",
-    "inquirer": "^14.2.5",
+    "inquirer": "^14.3.0",
     "ora": "^10.0.0",
     "zod": "^4.6.7"
   },
