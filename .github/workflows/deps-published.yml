@@ -1,0 +1,42 @@
+# A dependency PR can name a version the registry does not serve: never
+# published, yanked after the PR opened, or mistyped inside a grouped bump.
+# Every other check passes, because nothing here installs from the network —
+# the gate asks the registry directly, and only about versions this PR adds.
+#
+# Not a required check until branch protection says so: it is a verdict, not a
+# merge blocker, on the day it lands.
+
+name: Dependency versions published
+
+on:
+  pull_request:
+    branches: [ main, develop, release/** ]
+    paths:
+      - 'package-lock.json'
+      - '**/package-lock.json'
+      - 'scripts/check-published-deps.mjs'
+      - '.github/workflows/deps-published.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        # The check diffs the PR's lockfiles against the base branch, so the
+        # base commit has to be present locally.
+        fetch-depth: 0
+
+    - name: Use Node.js 24.x
+      uses: actions/setup-node@v7
+      with:
+        node-version: 24.x
+
+    - name: Fetch base branch
+      run: git fetch --depth=1 origin "${{ github.base_ref }}"
+
+    - name: Check every added dependency version exists on the registry
+      run: node scripts/check-published-deps.mjs "origin/${{ github.base_ref }}"
