@@ -59,7 +59,7 @@
   "scripts": {
     "dev": "vite",
     "start": "vite preview --host --port 3000",
-    "build": "tsc && vite build",
+    "build": "tsc && npm run build:donate-css && vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -72,7 +72,8 @@
     "verify:browser": "python3 scripts/run-browser-checks.py",
     "verify:ui": "npm run verify:source && npm run verify:browser",
     "inject:config": "python3 scripts/inject-app-config.py",
-    "build:local": "npm run build && npm run inject:config"
+    "build:local": "npm run build && npm run inject:config",
+    "build:donate-css": "node scripts/build-donate-css.cjs"
   },
   "eslintConfig": {
     "extends": [

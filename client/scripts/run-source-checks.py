@@ -22,6 +22,7 @@ CHECKS = [
     "check-no-alerts.py",
     "check-no-committed-credentials.py",
     "check-no-credential-logging.py",
+    "check-no-remote-scripts.py",
     "check-payment-vocabulary.py",
     "check-pdf-theme.py",
     "check-public-strings.py",
