@@ -2,6 +2,19 @@
 
 This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-first, open-source Islamic financial platform.
 
+## Released
+
+- `v1.3.0` — Jumada al-Akhirah 1448 (2026-11-19)
+- `v1.2.1` — SQLite URL hotfix (2026-11-12)
+- `v1.2.0` — payment tracking and data integrity (2026-11-11)
+- `v1.1.4` — dependency and security patch (2026-11-11)
+- `v1.1.3` — the key stays in the page (2026-11-04)
+- `v1.1.2` — the image starts (2026-10-30)
+- `v1.0.2`, `v1.0.1` — Rabi al-Thani 1448 (2026-10-05)
+- `v1.0.0` — Nur and Qamar (2026-10-01)
+
+The phases below record the path taken; the list above is what has shipped.
+
 ## Phase 1: Security & Compliance (CRITICAL)
 *Goal: Plug security holes and ensuring Fiqh basics are correct.*
 
@@ -109,11 +122,11 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 ## Phase 9: Technical Debt & Stability (Post-Launch)
 *Goal: Harden the development environment and ensure long-term maintainability.*
 
-- [ ] **Unified Testing**: Migrate Server tests to `vitest` (matching Client) to remove fragile Jest/JSDOM polyfills.
+- [x] **Unified Testing**: Migrate Server tests to `vitest` (matching Client) to remove fragile Jest/JSDOM polyfills.
 - [ ] **Strict Financial Typing**: Enforce `Decimal` type across all shared interfaces to prevent `number` regression.
 - [ ] **CI/CD Reliability**: Resolve `npm run build` permission issues permanently in deployment scripts.
 
-## Phase 10: v1.0 Release Readiness (current — Sha'ban/Muharram 1448)
+## Phase 10: v1.0 Release Readiness (shipped 2026-10-01)
 
 *Goal: a release-mergeable line and honest calculation surfaces.*
 
@@ -133,7 +146,7 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [x] **Doc hygiene**: `docs/` markdown 522 → 90 files; superseded archive and duplicate
   report layers purged; broken relative links 79 → 0 (#539, #540).
 
-### Open — needs a decision before v1.0
+### Open — still pending past v1.0
 
 - [ ] **Nisab grams, per madhab**: the code uses one global pair (87.48g/612.36g, the Hanafi
   standard) for every school, but the majority standard is 85g/595g, and the UI's own
@@ -146,8 +159,12 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
   independent per-madhhab rule-sets and can select a different nisab basis and debt-deduction
   scope for the same user. Which is canonical is a product and fiqh decision.
   (`methodology-audit-2026-09-25.md` §1)
-- [ ] **Invented threshold**: `server/src/services/snapshot.service.ts` uses a hardcoded
-  `nisabThreshold = 7500` that feeds a stored `zakatDue` — it must calculate or refuse.
+- [x] **Invented threshold**: `server/src/services/snapshot.service.ts` no longer hardcodes
+  `nisabThreshold = 7500`; it takes the threshold from the canonical nisab service and refuses
+  the snapshot when the threshold cannot be determined.
+- [ ] **Snapshot base**: the same service sums raw active asset values into `totalWealth` with
+  no zakatability rules, liability deduction or currency normalization — its own comment says
+  so. Whether that is the intended base is a calculation decision, not a code cleanup.
 - [ ] **Contrast**: 7 nodes in `/nisab-records` and `/analytics` (#507).
 - [ ] **CI reliability**: `Secret Detection Scan` flakes on an unauthenticated gitleaks
   version lookup (#534).
