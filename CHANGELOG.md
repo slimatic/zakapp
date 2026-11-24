@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.1] - 2026-11-24
+
+*14 Jumada al-Akhirah 1448.*
+
+### Fixes
+
+- The donation page ships its own compiled stylesheet; production's CSP blocked
+  `cdn.tailwindcss.com`, so the page rendered with no styling.
+
 ## [1.3.0] - 2026-11-19
 
 *9 Jumada al-Akhirah 1448.*
