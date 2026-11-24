@@ -46,7 +46,7 @@
     "@prisma/client": "7.10.1",
     "@zakapp/shared": "file:shared",
     "prisma": "7.10.1",
-    "js-sha256": "^1.0.0"
+    "js-sha256": "^1.1.0"
   },
   "overrides": {
     "effect": "^3.22.1",
