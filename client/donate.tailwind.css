@@ -1,0 +1,8 @@
+/* Input for client/public/donate.css — run from client/:
+   npx @tailwindcss/cli@4.3.5 -i donate.tailwind.css -o public/donate.css --minify */
+@import "tailwindcss" source(none);
+@source "./public/donate.html";
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+}
