@@ -256,7 +256,7 @@ export class ReminderService {
 
     // Check for incomplete payments
     if (primarySnapshot && primarySnapshot.status === 'finalized') {
-      const PaymentRecordModel = (await import('../models/PaymentRecord')).PaymentRecordModel;
+      const PaymentRecordModel = (await import('../models/PaymentRecord.js')).PaymentRecordModel;
       const payments = await PaymentRecordModel.findBySnapshot(primarySnapshot.id, userId);
 
       // `findBySnapshot` returns raw Prisma rows, so `amount` and `zakatAmount` are
