@@ -17,7 +17,7 @@ ZakApp re-imagines the wealth purification experience by prioritizing user priva
 
 > **v1.0.0 — Nur and Qamar.** The first stable release: the *ḥawl* is drawn as a moon-arc whose phase tracks the lunar year, the niṣāb basis is derived from your chosen school instead of held as a separate setting, asset values carry the date they were true, and the interface is properly right-to-left for Arabic. [Release notes](docs/release-notes/v1.0.md) · [Changelog](CHANGELOG.md)
 
-[![Sustain ZakApp](https://img.shields.io/badge/Sustain-ZakApp-teal?style=for-the-badge&logo=kofi)](client/public/donate.html)
+[![Sustain ZakApp](https://img.shields.io/badge/Sustain-ZakApp-teal?style=for-the-badge&logo=kofi)](https://zakapp.org/donate)
 
 ## 🔒 Privacy First
 
