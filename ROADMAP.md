@@ -4,6 +4,7 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 
 ## Released
 
+- `v1.3.1` — donation page stylesheet (2026-11-24)
 - `v1.3.0` — Jumada al-Akhirah 1448 (2026-11-19)
 - `v1.2.1` — SQLite URL hotfix (2026-11-12)
 - `v1.2.0` — payment tracking and data integrity (2026-11-11)
