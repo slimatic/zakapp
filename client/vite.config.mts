@@ -181,7 +181,17 @@ export default defineConfig(({ mode, isPreview }) => {
           // offline page for normal in-app navigation and "Try Again" could
           // never recover (the precached offline page kept being returned).
           navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/api\//, /^\/_\//, /^\/health/],
+          // Static files at the origin root (donate.html, robots.txt, ...) are
+          // real documents, not app routes: without the extension rule the
+          // worker answered /donate.html with the cached app shell and the
+          // router rendered its 404 page. Any path with a file extension is
+          // a document or asset — let the network serve it.
+          navigateFallbackDenylist: [
+            /^\/api\//,
+            /^\/_\//,
+            /^\/health/,
+            /^\/[^?]*\.[a-z0-9]+$/i,
+          ],
           cleanupOutdatedCaches: true,
           sourcemap: true,
           runtimeCaching: [
