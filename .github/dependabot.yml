@@ -19,6 +19,17 @@ updates:
     # bumps package.json and leaves the lockfile stale, so `npm ci` aborts with
     # EUSAGE and CI fails before a single test runs (that is how #635-#641 arrived).
     versioning-strategy: increase
+
+    # TypeScript 7 (the native compiler) is held, not forgotten: it removed
+    # tsconfig options this repo still relies on (target ES5, moduleResolution
+    # node10, downlevelIteration, baseUrl, non-relative paths), and
+    # @typescript-eslint still peers typescript ">=4.8.4 <6.1.0", so `npm ci`
+    # dies with ERESOLVE before a single test runs.
+    # Remove this ignore when BOTH are true: the tsconfigs are migrated, and the
+    # ESLint toolchain accepts TypeScript 7.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         patterns: ["*"]
@@ -36,6 +47,17 @@ updates:
     # bumps package.json and leaves the lockfile stale, so `npm ci` aborts with
     # EUSAGE and CI fails before a single test runs (that is how #635-#641 arrived).
     versioning-strategy: increase
+
+    # TypeScript 7 (the native compiler) is held, not forgotten: it removed
+    # tsconfig options this repo still relies on (target ES5, moduleResolution
+    # node10, downlevelIteration, baseUrl, non-relative paths), and
+    # @typescript-eslint still peers typescript ">=4.8.4 <6.1.0", so `npm ci`
+    # dies with ERESOLVE before a single test runs.
+    # Remove this ignore when BOTH are true: the tsconfigs are migrated, and the
+    # ESLint toolchain accepts TypeScript 7.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         patterns: ["*"]
@@ -53,6 +75,17 @@ updates:
     # bumps package.json and leaves the lockfile stale, so `npm ci` aborts with
     # EUSAGE and CI fails before a single test runs (that is how #635-#641 arrived).
     versioning-strategy: increase
+
+    # TypeScript 7 (the native compiler) is held, not forgotten: it removed
+    # tsconfig options this repo still relies on (target ES5, moduleResolution
+    # node10, downlevelIteration, baseUrl, non-relative paths), and
+    # @typescript-eslint still peers typescript ">=4.8.4 <6.1.0", so `npm ci`
+    # dies with ERESOLVE before a single test runs.
+    # Remove this ignore when BOTH are true: the tsconfigs are migrated, and the
+    # ESLint toolchain accepts TypeScript 7.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         patterns: ["*"]
@@ -70,6 +103,17 @@ updates:
     # bumps package.json and leaves the lockfile stale, so `npm ci` aborts with
     # EUSAGE and CI fails before a single test runs (that is how #635-#641 arrived).
     versioning-strategy: increase
+
+    # TypeScript 7 (the native compiler) is held, not forgotten: it removed
+    # tsconfig options this repo still relies on (target ES5, moduleResolution
+    # node10, downlevelIteration, baseUrl, non-relative paths), and
+    # @typescript-eslint still peers typescript ">=4.8.4 <6.1.0", so `npm ci`
+    # dies with ERESOLVE before a single test runs.
+    # Remove this ignore when BOTH are true: the tsconfigs are migrated, and the
+    # ESLint toolchain accepts TypeScript 7.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         patterns: ["*"]
@@ -89,6 +133,17 @@ updates:
     # bumps package.json and leaves the lockfile stale, so `npm ci` aborts with
     # EUSAGE and CI fails before a single test runs (that is how #635-#641 arrived).
     versioning-strategy: increase
+
+    # TypeScript 7 (the native compiler) is held, not forgotten: it removed
+    # tsconfig options this repo still relies on (target ES5, moduleResolution
+    # node10, downlevelIteration, baseUrl, non-relative paths), and
+    # @typescript-eslint still peers typescript ">=4.8.4 <6.1.0", so `npm ci`
+    # dies with ERESOLVE before a single test runs.
+    # Remove this ignore when BOTH are true: the tsconfigs are migrated, and the
+    # ESLint toolchain accepts TypeScript 7.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         patterns: ["*"]
