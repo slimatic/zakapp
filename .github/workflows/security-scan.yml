@@ -321,6 +321,9 @@ jobs:
     name: Static Code Analysis
     runs-on: ubuntu-latest
     needs: changes
+    permissions:
+      contents: read
+      security-events: write
     if: |
       always() &&
       (
@@ -372,11 +375,19 @@ jobs:
             echo "⚠️ CodeQL database not found. Skipping analysis."
             exit 0
           fi
+          # SARIF is the upload format code scanning expects; the existing analyzer reads
+          # the same `runs[].results` shape from this file.
           codeql database analyze \
-            --format=json \
+            --format=sarif-latest \
             --output=${{ env.SCAN_RESULTS_PATH }}/codeql-results.json \
             codeql-db \
             javascript-security-and-quality.qls
+
+      - name: Upload CodeQL SARIF to code scanning
+        if: always() && hashFiles('security-reports/codeql-results.json') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ env.SCAN_RESULTS_PATH }}/codeql-results.json
 
       - name: Install and run ESLint Security
         run: |
