@@ -45,15 +45,26 @@ router.post('/', async (req, res) => {
     // Format payload based on webhook type (simple heuristic)
     let payload: any = feedback;
 
-    if (webhookUrl.includes('slack.com')) {
+    // Match the configured webhook against known providers by exact hostname.
+    // A substring check ("slack.com" anywhere in the URL) also matches
+    // evil.com/slack.com and is flagged as incomplete URL sanitization.
+    let webhookHost = '';
+    try {
+      webhookHost = new URL(webhookUrl).hostname.toLowerCase();
+    } catch {
+      webhookHost = '';
+    }
+    const isHost = (domain: string) => webhookHost === domain || webhookHost.endsWith('.' + domain);
+
+    if (isHost('slack.com')) {
       payload = {
         text: `*New Feedback (${feedback.category})*\n${feedback.message}\n\n_From: ${feedback.email} on ${feedback.pageUrl}_`
       };
-    } else if (webhookUrl.includes('discord.com')) {
+    } else if (isHost('discord.com')) {
       payload = {
         content: `**New Feedback (${feedback.category})**\n${feedback.message}\n\n*From: ${feedback.email} on ${feedback.pageUrl}*`
       };
-    } else if (webhookUrl.includes('teams.microsoft.com')) {
+    } else if (isHost('teams.microsoft.com')) {
       payload = {
         text: `**New Feedback (${feedback.category})**\n\n${feedback.message}\n\nFrom: ${feedback.email} on ${feedback.pageUrl}`
       };
