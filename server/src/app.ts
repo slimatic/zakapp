@@ -20,6 +20,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 
 // Load environment variables
 import 'dotenv/config';
@@ -197,6 +198,22 @@ app.use((err: any, req: any, res: any, next: any) => {
   }
   next(err);
 });
+
+// Baseline abuse guard for every API route. The per-route limiters in
+// routes/tracking cover only a handful of endpoints; every other authorized
+// handler was flagged by CodeQL (js/missing-rate-limiting). Keep this as the
+// raw express-rate-limit value and mount it before every router: CodeQL only
+// recognises that form, and a wrapper or a later mount leaves the alerts in
+// place. TRUST_PROXY=1 is set in the production compose so req.ip is the real
+// client behind the Cloudflare tunnel + Caddy (see docker/Caddyfile).
+const globalRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.RATE_LIMIT_MAX) || 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+});
+app.use(globalRateLimit);
 
 // API routes
 app.use('/api/auth', authRoutes);

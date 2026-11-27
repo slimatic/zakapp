@@ -149,10 +149,16 @@ export class CalculationHistoryService {
     // Get total count for pagination
     const totalCount = await prisma.calculationHistory.count({ where });
 
+    // Sort fields and directions come from the request; a dynamic property name
+    // in `orderBy` is a remote-property-injection surface. Only known columns.
+    const SORTABLE = ['calculationDate', 'createdAt', 'zakatRate', 'methodology', 'calendarType'] as const;
+    const sortField = (SORTABLE as readonly string[]).includes(sortBy) ? sortBy : 'calculationDate';
+    const sortDirection: 'asc' | 'desc' = sortOrder === 'asc' ? 'asc' : 'desc';
+
     // Get calculations
     const calculations = await prisma.calculationHistory.findMany({
       where,
-      orderBy: { [sortBy]: sortOrder },
+      orderBy: { [sortField]: sortDirection },
       skip,
       take: limitNum
     });

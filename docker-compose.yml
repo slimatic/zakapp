@@ -87,6 +87,9 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
+      # One trusted hop (Caddy) so req.ip is the real client; docker/Caddyfile
+      # preserves cloudflared's X-Forwarded-For for the same reason.
+      - TRUST_PROXY=1
       - DATABASE_URL=file:/app/server/prisma/data/prod.db
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}

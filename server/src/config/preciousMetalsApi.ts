@@ -139,7 +139,15 @@ export class PreciousMetalsApiClient {
    * @throws Error if API request fails
    */
   async fetchCurrentPrices(currency?: string): Promise<MetalPrice[]> {
-    const targetCurrency = currency || this.config.baseCurrency;
+    const targetCurrency = (currency || this.config.baseCurrency).toUpperCase();
+
+    // The currency is interpolated into the request path, and callers pass it
+    // through from user input (e.g. a Nisab record's currency). A currency code
+    // is exactly three letters; anything else must not reach the URL
+    // (js/request-forgery / CWE-918).
+    if (!/^[A-Z]{3}$/.test(targetCurrency)) {
+      throw new Error(`Invalid currency code: ${targetCurrency}`);
+    }
 
     // Check cache
     const now = Date.now();

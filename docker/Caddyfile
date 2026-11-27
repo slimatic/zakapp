@@ -7,6 +7,13 @@
     
     # Admin API (optional)
     admin off
+
+    # Trust the local tunnel/NAT gateway so the client IP from cloudflared's
+    # X-Forwarded-For survives into the backend (pinned to the docker gateway,
+    # never private_ranges).
+    servers {
+        trusted_proxies static 172.18.0.1/32
+    }
 }
 
 # HTTP on port 80 - serves HTTP traffic
