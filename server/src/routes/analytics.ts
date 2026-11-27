@@ -121,10 +121,12 @@ router.get('/metrics', authMiddleware, validateSchema(analyticsQuerySchema), asy
     const start = startDate ? new Date(startDate) : undefined;
     const end = endDate ? new Date(endDate) : undefined;
 
-    // Default metric types if none specified
-    const KNOWN_METRICS = ['wealth_trend', 'zakat_trend', 'payment_distribution', 'asset_composition'];
-    const requestedMetrics = (metricTypes ? metricTypes.split(',') : KNOWN_METRICS)
-      .filter((metricType) => KNOWN_METRICS.includes(metricType));
+    // Default metric types if none specified. Iterate the known list rather than
+    // the request's list: the property name written into `metrics` then comes
+    // from a constant, not from user input (js/remote-property-injection).
+    const KNOWN_METRICS = ['wealth_trend', 'zakat_trend', 'payment_distribution', 'asset_composition'] as const;
+    const requested = metricTypes ? metricTypes.split(',') : [...KNOWN_METRICS];
+    const requestedMetrics = KNOWN_METRICS.filter((metricType) => requested.includes(metricType));
 
     // Fetch all requested metrics
     const metrics: Record<string, AnalyticsMetric> = {};
