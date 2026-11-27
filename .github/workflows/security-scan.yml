@@ -378,12 +378,15 @@ jobs:
           # SARIF is the upload format code scanning expects; the existing analyzer reads
           # the same `runs[].results` shape from this file. The CLI bundles no query
           # packs, so the suite is named as a pack spec and downloaded.
+          # security-extended, not security-and-quality: the quality suite filled the
+          # Security tab with maintainability notes (unused variables, NaN
+          # comparisons) that are not security findings.
           codeql database analyze \
             --format=sarif-latest \
             --output=${{ env.SCAN_RESULTS_PATH }}/codeql-results.json \
             --download \
             codeql-db \
-            codeql/javascript-queries:codeql-suites/javascript-security-and-quality.qls
+            codeql/javascript-queries:codeql-suites/javascript-security-extended.qls
 
       - name: Require CodeQL SARIF
         # A built database that produced no SARIF is a failed scan, not an empty one:
