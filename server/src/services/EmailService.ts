@@ -29,13 +29,13 @@ export class EmailService {
 
     private constructor() { }
 
-    /** Escape HTML special characters to prevent XSS */
+    /** Escape HTML special characters to prevent XSS in email bodies. */
     private static escapeHtml(input: string): string {
         return input
-            .replace(/&/g, '&')
-            .replace(/</g, '<')
-            .replace(/>/g, '>')
-            .replace(/"/g, '"')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
     }
 
@@ -182,9 +182,7 @@ export class EmailService {
         // Note: firstName is encrypted (ZK), so we cannot use it in server-side emails.
         const greeting = 'Salam, Welcome to ZakApp!';
 
-        const usernameDisplay = username
-        ? `<p style="margin: 0 0 16px 0; color: #4b5563; font-size: 14px;">Username: <strong>${EmailService.escapeHtml(username)}</strong></p>`
-        : '';
+        const usernameDisplay = username ? `<p style="margin: 0 0 16px 0; color: #4b5563; font-size: 14px;">Username: <strong>${EmailService.escapeHtml(username)}</strong></p>` : '';
 
         const html = `
 <!DOCTYPE html>

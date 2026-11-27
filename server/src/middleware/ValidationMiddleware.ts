@@ -483,6 +483,11 @@ function sanitizeObject(obj: any): any {
   if (typeof obj === 'object') {
     const sanitized: any = {};
     for (const [key, value] of Object.entries(obj)) {
+      // Never let a request body write these keys: `__proto__` on a plain object
+      // is a prototype-pollution primitive (js/remote-property-injection).
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        continue;
+      }
       sanitized[key] = sanitizeObject(value);
     }
     return sanitized;

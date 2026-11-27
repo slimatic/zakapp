@@ -11,8 +11,7 @@ async function verifyGoldApi() {
         process.exit(1);
     }
 
-    const maskedKey = apiKey.substring(0, 4) + '...' + apiKey.substring(apiKey.length - 4);
-    console.log(`🔑 Key found: ${maskedKey}`);
+    console.log('🔑 GOLD_API_KEY is set');
 
     try {
         console.log('📡 Fetching live prices from GoldAPI.io...');

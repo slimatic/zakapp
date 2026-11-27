@@ -116,7 +116,20 @@ export class SettingsService {
         requireEmailVerification?: boolean;
         allowRegistration?: boolean;
     }) {
-        const updateData: any = { ...data };
+        // Only the settings columns this service owns may be written. Spreading the
+        // request body directly lets a caller introduce arbitrary property names
+        // (js/remote-property-injection).
+        const allowedKeys = [
+            'smtpHost', 'smtpPort', 'smtpSecure', 'smtpUser', 'smtpPass',
+            'smtpFromEmail', 'smtpFromName', 'emailProvider', 'resendApiKey',
+            'requireEmailVerification', 'allowRegistration'
+        ] as const;
+        const updateData: any = {};
+        for (const key of allowedKeys) {
+            if ((data as any)[key] !== undefined) {
+                updateData[key] = (data as any)[key];
+            }
+        }
 
         // Encrypt sensitive fields if they are being updated
         if (data.smtpPass && process.env.APP_SECRET) {
@@ -134,8 +147,8 @@ export class SettingsService {
         // when they shouldn't be changed.
 
 
-        // Check if we need to remove fields that shouldn't be updated (undefined)
-        Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+        // `updateData` only ever contains whitelisted keys, so no undefined sweep
+        // is needed here anymore.
 
         // Remove masked fields that act as UI indicators only
         delete updateData.resendApiKeyMasked;
