@@ -222,6 +222,18 @@ export class NisabService {
       throw new Error('GOLD_API_KEY is not configured');
     }
 
+    // Validate symbol and currency to prevent SSRF/request forgery
+    // Only allow known symbols and standard ISO 4217 currency codes
+    const allowedSymbols = ['XAU', 'XAG'] as const;
+    if (!allowedSymbols.includes(symbol)) {
+      throw new Error(`Invalid metal symbol: ${symbol}`);
+    }
+
+    // Currency must be a valid ISO 4217 code (3 uppercase letters)
+    if (!/^[A-Z]{3}$/.test(currency)) {
+      throw new Error(`Invalid currency code: ${currency}`);
+    }
+
     // GoldAPI expects symbol and currency in URL, e.g., /api/XAU/USD
     // Note: GoldAPI returns price per OUNCE usually, but we need GRAMS.
     // However, some endpoints return price per gram directly if configured or we need to convert.

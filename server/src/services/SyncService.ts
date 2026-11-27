@@ -47,6 +47,11 @@ export class SyncService {
      * Get safe user ID for CouchDB naming
      */
     private getSafeUserId(userId: string): string {
+        // Validate userId to prevent path traversal/injection in CouchDB URLs
+        // Only allow alphanumeric, hyphen, underscore (typical UUID/slug format)
+        if (!/^[a-zA-Z0-9_-]+$/.test(userId)) {
+            throw new Error(`Invalid userId format: ${userId}`);
+        }
         return userId.toLowerCase().replace(/[^a-z0-9]/g, '_');
     }
 
