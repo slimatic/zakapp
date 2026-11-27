@@ -20,8 +20,10 @@ import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { CalculationSnapshotService } from '../services/snapshot.service';
 import { CreateCalculationSnapshotRequest } from '@zakapp/shared';
+import { Logger } from '../utils/logger';
 
 const snapshotService = new CalculationSnapshotService();
+const logger = new Logger('SnapshotsController');
 
 export class SnapshotsController {
   /**
@@ -59,7 +61,7 @@ export class SnapshotsController {
 
       res.status(201).json(response);
     } catch (error) {
-      console.error('SnapshotsController - Create snapshot error:', error);
+      logger.error('Create snapshot error:', error);
       throw error;
     }
   });
@@ -84,7 +86,7 @@ export class SnapshotsController {
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('SnapshotsController - Get snapshots error:', error);
+      logger.error('Get snapshots error:', error);
       throw error;
     }
   });
@@ -119,7 +121,7 @@ export class SnapshotsController {
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('SnapshotsController - Get snapshot error:', error);
+      logger.error('Get snapshot error:', error);
       throw error;
     }
   });
@@ -154,7 +156,7 @@ export class SnapshotsController {
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('SnapshotsController - Compare snapshots error:', error);
+      logger.error('Compare snapshots error:', error);
       throw error;
     }
   });
@@ -185,7 +187,7 @@ export class SnapshotsController {
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('SnapshotsController - Delete snapshot error:', error);
+      logger.error('Delete snapshot error:', error);
       throw error;
     }
   });
@@ -221,7 +223,7 @@ export class SnapshotsController {
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('SnapshotsController - Unlock snapshot error:', error);
+      logger.error('Unlock snapshot error:', error);
       throw error;
     }
   });
@@ -252,7 +254,7 @@ export class SnapshotsController {
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('SnapshotsController - Lock snapshot error:', error);
+      logger.error('Lock snapshot error:', error);
       throw error;
     }
   });
@@ -286,7 +288,7 @@ export class SnapshotsController {
 
       res.status(200).json(snapshot);
     } catch (error) {
-      console.error('SnapshotsController - Export snapshot error:', error);
+      logger.error('Export snapshot error:', error);
       throw error;
     }
   });
