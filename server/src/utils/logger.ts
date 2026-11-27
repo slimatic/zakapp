@@ -25,21 +25,21 @@ export class Logger {
 
   info(message: string, data?: any): void {
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`[${this.context}] INFO: ${message}`, data || '');
+      console.log('[%s] INFO: %s', this.context, message, data ?? '');
     }
   }
 
   error(message: string, error?: any): void {
-    console.error(`[${this.context}] ERROR: ${message}`, error || '');
+    console.error('[%s] ERROR: %s', this.context, message, error ?? '');
   }
 
   warn(message: string, data?: any): void {
-    console.warn(`[${this.context}] WARN: ${message}`, data || '');
+    console.warn('[%s] WARN: %s', this.context, message, data ?? '');
   }
 
   debug(message: string, data?: any): void {
     if (process.env.DEBUG) {
-      console.debug(`[${this.context}] DEBUG: ${message}`, data || '');
+      console.debug('[%s] DEBUG: %s', this.context, message, data ?? '');
     }
   }
 }
