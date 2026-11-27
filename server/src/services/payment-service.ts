@@ -140,9 +140,15 @@ export class PaymentService {
     // For now, we'll skip amount filtering in the database query
     // In a production system, you might want to store decrypted amounts in a separate index
 
+    // Sort fields and directions come from the request; a dynamic property name
+    // in `orderBy` is a remote-property-injection surface. Only known columns.
+    const SORTABLE = ['paymentDate', 'createdAt', 'recipientCategory', 'status', 'paymentMethod', 'currency'] as const;
+    const sortField = (SORTABLE as readonly string[]).includes(orderBy) ? orderBy : 'paymentDate';
+    const sortDirection: 'asc' | 'desc' = orderDirection === 'asc' ? 'asc' : 'desc';
+
     const payments = await prisma.paymentRecord.findMany({
       where,
-      orderBy: { [orderBy]: orderDirection },
+      orderBy: { [sortField]: sortDirection },
       take: limit,
       skip: offset,
     });

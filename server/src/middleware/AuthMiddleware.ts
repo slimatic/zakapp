@@ -62,9 +62,10 @@ export class AuthMiddleware {
         return;
       }
 
-      // Validate Bearer token format
-      const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/);
-      if (!tokenMatch) {
+      // Parse the Bearer token without a regex: a backtracking pattern over an
+      // attacker-sized header is a ReDoS surface (js/polynomial-redos).
+      const authValue = authHeader.trim();
+      if (!authValue.startsWith('Bearer ')) {
         res.status(401).json({
           success: false,
           error: {
@@ -75,25 +76,13 @@ export class AuthMiddleware {
         return;
       }
 
-      const token = tokenMatch[1];
+      const token = authValue.slice('Bearer '.length).trim();
       if (!token) {
         res.status(401).json({
           success: false,
           error: {
             code: 'UNAUTHORIZED',
             message: 'Access token is required'
-          }
-        });
-        return;
-      }
-
-      // Special handling for contract test scenario
-      if (token === 'other-user-token') {
-        res.status(403).json({
-          success: false,
-          error: {
-            code: 'FORBIDDEN',
-            message: 'Access denied to this resource'
           }
         });
         return;
@@ -199,15 +188,10 @@ export class AuthMiddleware {
         return;
       }
 
-      const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/);
-      if (!tokenMatch) {
-        // Invalid format, but continue without user info for optional auth
-        next();
-        return;
-      }
-
-      const token = tokenMatch[1];
+      const authValue = authHeader.trim();
+      const token = authValue.startsWith('Bearer ') ? authValue.slice('Bearer '.length).trim() : '';
       if (!token) {
+        // Invalid format, but continue without user info for optional auth
         next();
         return;
       }

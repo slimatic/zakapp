@@ -20,26 +20,44 @@
  * Simple logging wrapper for consistent logging across services
  */
 
+// Build one already-formatted string instead of passing a tainted value as
+// console's first argument: console treats the first argument as a printf-style
+// format string when more arguments follow (js/tainted-format-string, CWE-134).
+// Line breaks are removed with an empty replacement, which the log-injection
+// query recognises as a sanitizer (js/log-injection, CWE-117).
+function logLine(context: string, level: string, message: string, extra?: unknown): string {
+  const text = `[${context}] ${level}: ${String(message).replace(/\r/g, '').replace(/\n/g, '')}`;
+  if (extra === undefined || extra === '') {
+    return text;
+  }
+  try {
+    // JSON.stringify escapes line breaks and keeps objects readable.
+    return text + ' ' + JSON.stringify(extra);
+  } catch {
+    return text + ' [unserializable]';
+  }
+}
+
 export class Logger {
   constructor(private context: string) {}
 
   info(message: string, data?: any): void {
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`[${this.context}] INFO: ${message}`, data || '');
+      console.log(logLine(this.context, 'INFO', message, data));
     }
   }
 
   error(message: string, error?: any): void {
-    console.error(`[${this.context}] ERROR: ${message}`, error || '');
+    console.error(logLine(this.context, 'ERROR', message, error));
   }
 
   warn(message: string, data?: any): void {
-    console.warn(`[${this.context}] WARN: ${message}`, data || '');
+    console.warn(logLine(this.context, 'WARN', message, data));
   }
 
   debug(message: string, data?: any): void {
     if (process.env.DEBUG) {
-      console.debug(`[${this.context}] DEBUG: ${message}`, data || '');
+      console.debug(logLine(this.context, 'DEBUG', message, data));
     }
   }
 }

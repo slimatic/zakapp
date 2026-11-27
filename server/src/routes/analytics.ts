@@ -122,8 +122,9 @@ router.get('/metrics', authMiddleware, validateSchema(analyticsQuerySchema), asy
     const end = endDate ? new Date(endDate) : undefined;
 
     // Default metric types if none specified
-    const defaultMetrics = ['wealth_trend', 'zakat_trend', 'payment_distribution', 'asset_composition'];
-    const requestedMetrics = metricTypes ? metricTypes.split(',') : defaultMetrics;
+    const KNOWN_METRICS = ['wealth_trend', 'zakat_trend', 'payment_distribution', 'asset_composition'];
+    const requestedMetrics = (metricTypes ? metricTypes.split(',') : KNOWN_METRICS)
+      .filter((metricType) => KNOWN_METRICS.includes(metricType));
 
     // Fetch all requested metrics
     const metrics: Record<string, AnalyticsMetric> = {};
