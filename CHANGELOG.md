@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.3.2] - 2026-11-27
+
+*17 Jumada al-Akhirah 1448.*
+
+### Security
+
+- **Every API request now passes through a global rate limiter.** The proxy chain
+  (Cloudflare → cloudflared → Caddy) passes the real client address through, so a
+  busy household behind one connection is not throttled as a single client.
+  Responses carry `RateLimit-*` headers, and an exhausted window returns a
+  `RATE_LIMIT_EXCEEDED` error instead of a generic failure.
+- Notification emails escape the values they interpolate, so a display name or
+  reminder title containing markup can no longer alter the message body.
+- Log lines are built as a single argument and strip newlines, closing the log
+  injection and format-string paths.
+- Currency codes are validated before they reach the metals price provider, and
+  an unexpected value is rejected rather than placed into the request path.
+- Sort columns, analytics metrics and settings keys are matched against explicit
+  lists, and object merges reject a `__proto__` key.
+- Bearer-token parsing no longer relies on a backtracking regular expression.
+- An unmounted reminders router that accounted for seven static-analysis alerts
+  was removed. No route changed behavior.
+
+### Dependencies
+
+- Client: i18next 27, react-i18next 18, js-sha256 1.1, recharts 3.11 and the
+  routine minor-and-patch group. Development tooling stays within the held
+  TypeScript and ESLint majors.
+
+### CI
+
+- CodeQL runs the `security-extended` suite, uploads SARIF to code scanning, and
+  the nightly scan uses a pack specification the runner accepts.
+
 ## [1.3.1] - 2026-11-24
 
 *14 Jumada al-Akhirah 1448.*
