@@ -171,7 +171,8 @@ first would have made the damage worse, not better.
 
 1. **Release branch from `develop`** — `git checkout -b release/X.Y.Z origin/develop`.
 2. **Version parity** across all five `package.json` files and their locks (root,
-   `client`, `server`, `shared`, `cli`), and the CHANGELOG heading dated with the Hijri line.
+   `client`, `server`, `shared`, `cli`), the CHANGELOG heading dated with the Hijri line,
+   and the `ROADMAP.md` Released list carrying the new version.
 3. **PR to `main`.** Required checks must be green; `mergeStateStatus` must read `CLEAN`.
 4. **Tag the merge commit** and push it: `git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z`.
 5. **Create the GitHub Release object** — the tag alone is not a release:
